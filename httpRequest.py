@@ -82,17 +82,37 @@ def platonBanlenceCalc():
     ccode = platon.getCode('lat1258ehcq73ux7wqsuurtke9lss9h4prck4ld34x')
     print(len(ccode))
 
+def platonContractOwner():
+    w3 = Web3(HTTPProvider("http://192.168.1.49:6789"))
+    platon = PlatON(w3)
+
+    false = False
+    true = True
+
+    contractAddr = 'lat1fg3u5qy8rnu7gryjznnuvj8fewnvp9efj3zew0'
+    cabi = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"constant":true,"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"burn","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[],"name":"isOwner","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"renounceOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]
+
+    hello = platon.contract(address=contractAddr, abi=cabi)
+    result = hello.functions.owner().call()
+    print(type(result[0]), result[0])
+    print(Web3.isAddress(result[0]))
+    rst_addr = Web3.toText(hexstr=result[0])
+    printrst_addr
+    print(platon.getTransactionCount(rst_addr))
+
 
 def makeAnalisis():
     df_Addr_Value = pd.read_csv('./PlatON/data/latAVmain 1621868698.csv')
 
-    print(len(df_Addr_Value))
+    print('total: ', len(df_Addr_Value))
     accounts = df_Addr_Value[df_Addr_Value['value'] > (1e-6)]['value']
     accounts = accounts.apply(np.log10)
     plt.hist(accounts, bins=1000)
-    print(len(accounts))
+    print('delete <= 1e-6: ', len(accounts))
 
     spaceL = [-6, 0, 2, np.log10(150), 3, 4, 5, 6, 7, 8, 9, 10]
+    #spaceL = np.power(10, spaceL)
+    #print(spaceL)
     areas = pd.cut(accounts.values, spaceL)
     value_counts = areas.value_counts()
     #print(value_counts.index)
@@ -105,4 +125,5 @@ def makeAnalisis():
 #getPlatON_Addr2()
 #testPD()
 #platonBanlenceCalc()
-makeAnalisis()
+platonContractOwner()
+#makeAnalisis()
