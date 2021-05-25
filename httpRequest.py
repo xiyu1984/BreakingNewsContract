@@ -1,7 +1,12 @@
+from client_sdk_python import Web3, HTTPProvider
+from client_sdk_python.eth import PlatON
+from hexbytes import HexBytes
+
 import requests
 import json
 import time
 import pandas as pd
+
 
 def getPlatON_Addr():
     pageNo = 1
@@ -65,6 +70,16 @@ def testPD():
     now0xx = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(1621781965000/1000))
     print(now0xx)
 
-getPlatON_Addr()
+
+def platonBanlenceCalc():
+    w3 = Web3(HTTPProvider("http://192.168.1.49:6789"))
+    platon = PlatON(w3)
+    #print(platon.blockNumber)
+    cb = platon.getBalance('lat1258ehcq73ux7wqsuurtke9lss9h4prck4ld34x') * 1e-18
+    print(cb)
+
+
+#getPlatON_Addr()
 #getPlatON_Addr2()
 #testPD()
+platonBanlenceCalc()
