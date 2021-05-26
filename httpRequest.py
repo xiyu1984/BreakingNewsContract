@@ -101,7 +101,7 @@ def platonContractOwner():
 
 
 def makeAnalisis():
-    df_Addr_Value = pd.read_csv('./PlatON/data/latAVmain 1621868698.csv')
+    df_Addr_Value = pd.read_csv('./PlatON/data/latAVmain 1622010992.csv')
 
     print('total: ', len(df_Addr_Value))
     accounts = df_Addr_Value[df_Addr_Value['value'] > (1e-6)]['value']
@@ -121,8 +121,7 @@ def makeAnalisis():
     plt.show()
 
 #getPlatON_Addr()
-#getPlatON_Addr2()
 #testPD()
 #platonBanlenceCalc()
-platonContractOwner()
-#makeAnalisis()
+#platonContractOwner()
+makeAnalisis()
