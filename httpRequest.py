@@ -96,9 +96,8 @@ def platonContractOwner():
     result = hello.functions.owner().call()
     print(type(result[0]), result[0])
     print(Web3.isAddress(result[0]))
-    rst_addr = Web3.toText(hexstr=result[0])
-    printrst_addr
-    print(platon.getTransactionCount(rst_addr))
+    print(result[0])
+    print(platon.getTransactionCount(result[0]))
 
 
 def makeAnalisis():
