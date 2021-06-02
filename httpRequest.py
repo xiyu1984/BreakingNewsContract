@@ -76,10 +76,11 @@ def testPD():
 def platonBanlenceCalc():
     w3 = Web3(HTTPProvider("http://192.168.1.49:6789"))
     platon = PlatON(w3)
-    cb = platon.getBalance('lat1258ehcq73ux7wqsuurtke9lss9h4prck4ld34x') * 1e-18
+    cb = platon.getBalance('lat1zqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzsjx8h7') * 1e-18
     print(cb)
+    print(np.log10(cb))
 
-    ccode = platon.getCode('lat1258ehcq73ux7wqsuurtke9lss9h4prck4ld34x')
+    ccode = platon.getCode('lat1zqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzsjx8h7')
     print(len(ccode))
 
 def platonContractOwner():
@@ -101,7 +102,7 @@ def platonContractOwner():
 
 
 def makeAnalisis():
-    df_Addr_Value = pd.read_csv('./PlatON/data/latAVmain 1622010992.csv')
+    df_Addr_Value = pd.read_csv('./PlatON/data/latAVmain 1622429578.csv')
 
     print('total: ', len(df_Addr_Value))
     accounts = df_Addr_Value[df_Addr_Value['value'] > (1e-6)]['value']
