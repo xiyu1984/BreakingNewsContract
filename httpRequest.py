@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 def getPlatON_Addr():
     pageNo = 1
-    pageSize = 500
+    pageSize = 200
 
     addrsList = []
 
@@ -32,7 +32,7 @@ def getPlatON_Addr():
             req = json.loads(req.text)
             addrs = req['data']['result']
             if len(addrs) > 0:
-                aList = [[addr['address'], addr['balance']* 1e-18] for addr in addrs]
+                aList = [[addr['address'], addr['totalValue']* 1e-18] for addr in addrs]
                 addrsList += aList
             else:
                 break
@@ -50,7 +50,7 @@ def getPlatON_Addr():
     df = pd.DataFrame(addrsList, columns=['address', 'value'])
 
     now03 = int(round(time.time()))
-    filename = './PlatON/data/latAVmain {}.csv'.format(now03)
+    filename = './data/latAVmain {}.csv'.format(now03)
     df.to_csv(filename)
 
     print(len(addrsList))
@@ -121,8 +121,8 @@ def makeAnalisis():
 
     plt.show()
 
-#getPlatON_Addr()
+getPlatON_Addr()
 #testPD()
 #platonBanlenceCalc()
 #platonContractOwner()
-makeAnalisis()
+#makeAnalisis()
