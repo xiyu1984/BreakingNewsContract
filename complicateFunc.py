@@ -5,11 +5,12 @@ from hexbytes import HexBytes
 true = True
 false = False
 contractAddr = 'lat1ktum8z9m9j4pz0l0gytqqrfgt8uv9sxnptxg9d'
-from_address = 'lat1a3tlqd07aps8tjsegz967gdq686qttk2e2p4kw'
+from_address = 'lat1ar0s6re3qpe3rt39523qw4jars6s4sdhak459n'
 cabi = [{"constant":true,"input":[],"name":"makeCall","output":"int32","type":"Action"},{"constant":false,"input":[{"name":"ele","type":"int32"}],"name":"putElement","output":"void","type":"Action"},{"constant":false,"input":[],"name":"clearElement","output":"void","type":"Action"},{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"uint32"}],"name":"Add","topic":1,"type":"Event"},{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"call2","topic":1,"type":"Event"},{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"put","topic":1,"type":"Event"},{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"uint32"}],"name":"clear","topic":1,"type":"Event"},{"baseclass":[],"fields":[{"name":"myParams","type":"int32[]"}],"name":"inputParams","type":"struct"},{"constant":false,"input":[{"name":"ipa","type":"inputParams"}],"name":"init","output":"void","type":"Action"},{"constant":true,"input":[],"name":"getParams","output":"int32[]","type":"Action"},{"constant":false,"input":[],"name":"AddCalc","output":"int32","type":"Action"},{"constant":true,"input":[{"name":"a","type":"int32"},{"name":"b","type":"int32"}],"name":"makeCall2","output":"int32","type":"Action"}]
+nodeIP = "http://47.241.69.26:6789"
 
 def testCall():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
 
     hello = platon.wasmcontract(address=contractAddr, abi=cabi,vmtype=1)
@@ -18,7 +19,7 @@ def testCall():
     print(result)
 
 def testMakeCall():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
 
     hello = platon.wasmcontract(address=contractAddr, abi=cabi,vmtype=1)
@@ -28,7 +29,7 @@ def testMakeCall():
 
 
 def testClear():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=contractAddr, abi=cabi,vmtype=1)
 
@@ -42,7 +43,7 @@ def testClear():
 
 
 def testOps():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=contractAddr, abi=cabi,vmtype=1)
 
@@ -56,7 +57,7 @@ def testOps():
 
 
 def testAdd():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=contractAddr, abi=cabi,vmtype=1)
 
@@ -69,7 +70,7 @@ def testAdd():
     print(topic_param)
 
 #testOps()
-testCall()
+#testCall()
 #testClear()
-#testAdd()
+testAdd()
 #testMakeCall()

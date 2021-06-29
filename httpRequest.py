@@ -1,5 +1,6 @@
 from client_sdk_python import Web3, HTTPProvider
 from client_sdk_python.eth import PlatON
+from client_sdk_python.ppos import Ppos
 from hexbytes import HexBytes
 
 import requests
@@ -33,6 +34,7 @@ def getPlatON_Addr():
             addrs = req['data']['result']
             if len(addrs) > 0:
                 aList = [[addr['address'], addr['totalValue']* 1e-18] for addr in addrs]
+                #aList = [[addr['address'], addr['balance']* 1e-18] for addr in addrs]
                 addrsList += aList
             else:
                 break
@@ -50,7 +52,7 @@ def getPlatON_Addr():
     df = pd.DataFrame(addrsList, columns=['address', 'value'])
 
     now03 = int(round(time.time()))
-    filename = './data/latAVmain {}.csv'.format(now03)
+    filename = './PlatON/data/pandalatAVmain{}.csv'.format(now03)
     df.to_csv(filename)
 
     print(len(addrsList))
@@ -102,7 +104,7 @@ def platonContractOwner():
 
 
 def makeAnalisis():
-    df_Addr_Value = pd.read_csv('./PlatON/data/latAVmain 1622429578.csv')
+    df_Addr_Value = pd.read_csv('./PlatON/data/pandalatAVmain1624932831.csv')
 
     print('total: ', len(df_Addr_Value))
     accounts = df_Addr_Value[df_Addr_Value['value'] > (1e-6)]['value']
@@ -121,8 +123,49 @@ def makeAnalisis():
 
     plt.show()
 
-getPlatON_Addr()
+
+def getDelValue():
+    w3 = Web3(HTTPProvider("http://192.168.1.49:6789"))
+    platon = PlatON(w3)
+    ppos = Ppos(w3)
+
+    CandidateList = ppos.getCandidateList()
+    print(len(CandidateList['Ret']))
+    CandidateList = CandidateList['Ret']
+    CandidateDF = pd.DataFrame(CandidateList)
+    CandidateDF = CandidateDF[['StakingAddress', 'Released', 'ReleasedHes']]
+    #print(CandidateDF)
+
+    for i in CandidateDF.itertuples(index=True, name='Pandas'):
+        print(getattr(i, 'StakingAddress'))
+        print(getattr(i, 'Released'))
+        print(getattr(i, 'ReleasedHes'))
+        #if i['StakingAddress'] == 'lat1gfqe93qgsq8m4ltq8mtgrfu6l8mndy0784g25g':
+            #print(i)
+
+    return
+    num = 0
+    for i in CandidateList:
+        restrict = ppos.getRestrictingInfo(i['StakingAddress'])
+        if isinstance(restrict['Ret'], dict):
+            #print(ppos.getDelegateReward(i['StakingAddress']))
+            #print(restrict)
+            num += 1
+            #print(ppos.getRelatedListByDelAddr(i['StakingAddress']))
+
+        if i['StakingAddress'] == 'lat1gfqe93qgsq8m4ltq8mtgrfu6l8mndy0784g25g':
+            print(i)
+
+    print(num)
+
+    #print(ppos.getDelegateReward('lat1gfqe93qgsq8m4ltq8mtgrfu6l8mndy0784g25g'))
+    #print(ppos.getRestrictingInfo('lat1gfqe93qgsq8m4ltq8mtgrfu6l8mndy0784g25g'))
+    #print(ppos.getRelatedListByDelAddr('lat1gfqe93qgsq8m4ltq8mtgrfu6l8mndy0784g25g'))
+
+
+#getPlatON_Addr()
 #testPD()
 #platonBanlenceCalc()
 #platonContractOwner()
-#makeAnalisis()
+makeAnalisis()
+#getDelValue()

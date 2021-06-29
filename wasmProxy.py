@@ -3,7 +3,7 @@ from client_sdk_python.eth import PlatON
 
 true = True
 false = False
-from_address = 'lat1a3tlqd07aps8tjsegz967gdq686qttk2e2p4kw'
+from_address = 'lat1ar0s6re3qpe3rt39523qw4jars6s4sdhak459n'
 
 proxyAddr = 'lat1cjm72p0p6p99g8rmd2hmwg3nrqpam2a9pcaklr'
 proxy_abi = [{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"incalcAdd","topic":1,"type":"Event"},{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"inmakeSum","topic":1,"type":"Event"},{"constant":false,"input":[{"name":"contractAddr","type":"string"}],"name":"init","output":"void","type":"Action"},{"constant":false,"input":[{"name":"contractAddr","type":"string"}],"name":"RegisterContract","output":"bool","type":"Action"},{"constant":false,"input":[{"name":"a","type":"int32"},{"name":"b","type":"int32"}],"name":"calcAdd","output":"pair<int32,bool>","type":"Action"},{"constant":true,"input":[{"name":"a","type":"int32"},{"name":"b","type":"int32"}],"name":"const_calcAdd","output":"pair<int32,bool>","type":"Action"},{"constant":false,"input":[{"name":"eles","type":"int32[]"}],"name":"makeSum","output":"pair<int32,bool>","type":"Action"}]
@@ -13,9 +13,12 @@ contract_abi = [{"constant":false,"input":[],"name":"init","output":"void","type
 
 contractAddr_2 = 'lat1um4c0s739hxtsxula76aqf56w8k4l3cnh8w2gx'
 contract_2_abi = [{"constant":false,"input":[],"name":"init","output":"void","type":"Action"},{"constant":false,"input":[{"name":"proxyAddr","type":"string"}],"name":"RegisterProxy","output":"bool","type":"Action"},{"constant":true,"input":[],"name":"GetProxyAddress","output":"string","type":"Action"},{"constant":true,"input":[],"name":"GetOwnerAddress","output":"string","type":"Action"},{"constant":false,"input":[{"name":"contractAddr","type":"string"}],"name":"updateContract","output":"bool","type":"Action"},{"constant":false,"input":[{"name":"a","type":"int32"},{"name":"b","type":"int32"}],"name":"calcAdd","output":"int32","type":"Action"},{"constant":true,"input":[{"name":"a","type":"int32"},{"name":"b","type":"int32"}],"name":"const_calcAdd","output":"int32","type":"Action"},{"constant":false,"input":[{"name":"eles","type":"int32[]"}],"name":"makeSum","output":"int32","type":"Action"}]
+nodeIP = "http://47.241.69.26:6789"
+#nodeIP = 'https://openapi.platon.network/rpc'
+
 
 def proxyCall():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=proxyAddr, abi=proxy_abi,vmtype=1)
 
@@ -35,7 +38,7 @@ def proxyCall():
 
 
 def contract_1_Call():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
 
     hello = platon.wasmcontract(address=contractAddr, abi=contract_abi,vmtype=1)
@@ -50,7 +53,7 @@ def contract_1_Call():
     return
 
 def contract_2_Call():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
 
     hello = platon.wasmcontract(address=contractAddr_2, abi=contract_2_abi,vmtype=1)
@@ -66,7 +69,7 @@ def contract_2_Call():
 
 
 def contract_1_to_2():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=contractAddr, abi=contract_abi,vmtype=1)
 
@@ -79,7 +82,7 @@ def contract_1_to_2():
 
 
 def c2_registerProxy():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=contractAddr_2, abi=contract_2_abi,vmtype=1)
 
@@ -93,7 +96,7 @@ def c2_registerProxy():
 
 
 def contract_2_to_1():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=contractAddr_2, abi=contract_2_abi,vmtype=1)
 
@@ -106,7 +109,7 @@ def contract_2_to_1():
 
 
 def whichContract():
-    w3 = Web3(HTTPProvider("http://47.105.180.114:6789"))
+    w3 = Web3(HTTPProvider(nodeIP))
     platon = PlatON(w3)
     hello = platon.wasmcontract(address=proxyAddr, abi=proxy_abi,vmtype=1)
 
