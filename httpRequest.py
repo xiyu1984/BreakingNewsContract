@@ -163,9 +163,9 @@ def getDelValue():
     #print(ppos.getRelatedListByDelAddr('lat1gfqe93qgsq8m4ltq8mtgrfu6l8mndy0784g25g'))
 
 
-#getPlatON_Addr()
+getPlatON_Addr()
 #testPD()
 #platonBanlenceCalc()
 #platonContractOwner()
-makeAnalisis()
+#makeAnalisis()
 #getDelValue()
