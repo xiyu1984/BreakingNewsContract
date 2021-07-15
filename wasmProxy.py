@@ -28,7 +28,7 @@ def proxyCall():
     print('***********************calcAdd: ')
     print(rstAdd2)
 
-    tx_events_hash_sum = hello.functions.makeSum([11, 12, 13]).transact({'from':from_address,'gas':1500000})
+    tx_events_hash_sum = hello.functions.makeSum([11, 12, 13, 14]).transact({'from':from_address,'gas':1500000})
     tx_events_receipt_sum = platon.waitForTransactionReceipt(tx_events_hash_sum)
     rstAdd_sum = hello.events.inmakeSum().processReceipt(tx_events_receipt_sum)
     print('')
