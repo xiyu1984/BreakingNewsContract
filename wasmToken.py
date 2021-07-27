@@ -1,11 +1,12 @@
 from client_sdk_python import Web3, HTTPProvider, WebsocketProvider
 from client_sdk_python.eth import PlatON
+from client_sdk_python import utils
 from client_sdk_python.utils import contracts
 
 false = False
 true = True
-instanceABI = [{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"addCallResult","topic":1,"type":"Event"},{"constant":false,"input":[],"name":"init","output":"void","type":"Action"},{"constant":false,"input":[{"name":"eles","type":"int32[]"}],"name":"testAddFromGeneralProxy","output":"bool","type":"Action"}]
-instanceContractAddr = 'lat1dgcfjgtdw56rjg7fa90gwzg0fdw9lyrs3kka28'
+instanceABI = [{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"addCallResult","topic":1,"type":"Event"},{"constant":false,"input":[],"name":"init","output":"void","type":"Action"},{"constant":false,"input":[{"name":"eles","type":"int32[]"}],"name":"testAddFromGeneralProxy","output":"bool","type":"Action"},{"constant":true,"input":[],"name":"testU128Return","output":"uint128","type":"Action"}]
+instanceContractAddr = 'lat1052k7czn6z288p8a8ym42yxy2v02jfr30tc243'
 
 clientAccount = 'lat1ar0s6re3qpe3rt39523qw4jars6s4sdhak459n'
 
@@ -38,6 +39,7 @@ def generalProxy():
         params = contracts.encode_abi(w3, fn_abi, [[11, 12, 13]], vmtype=1, data=None, setabi=instanceABI)
         print(params)
         print(int(params, 16))
+        #print(utils.utf8ToHex(params))
         print(Web3.toBytes(int(params, 16)))
 
         tx_events_hash = hello.functions.generalCall(instanceContractAddr, int(params, 16)).transact({'from':clientAccount,'gas':1500000})
@@ -48,4 +50,12 @@ def generalProxy():
         print(topic_param)
         
 
-generalProxy()
+def testU128Retuen():
+    w3 = Web3(HTTPProvider(devIP))
+    platon = PlatON(w3)
+
+    instanceCalled = platon.wasmcontract(address=instanceContractAddr, abi=instanceABI,vmtype=1)
+    print(instanceCalled.functions.testU128Return().call())
+
+#generalProxy()
+testU128Retuen()
