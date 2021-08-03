@@ -22,7 +22,7 @@ struct News: public Message
     std::string                         NewTitle;               //爆料标题，内部会拼接成唯一标识
     std::vector<Message>                Viewpoints;             //这条爆料后面跟帖的观点
 
-    PLATON_SERIALIZE_DERIVED(News, Message, (Viewpoints))
+    PLATON_SERIALIZE_DERIVED(News, Message, (NewTitle)(Viewpoints))
 };
 
 struct UserInfo {
