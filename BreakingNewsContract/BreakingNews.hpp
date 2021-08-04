@@ -51,12 +51,22 @@ struct NewsSummary
     PLATON_SERIALIZE(NewsSummary, (NewTitle)(NewID)(Supporter)(Opponents)(Up)(Down))
 };
 
+//用户信息
 struct UserInfo {
     std::string                                                     UserAddress;            //用户地址
     std::vector<NewsSummary>                                        UserNews;               //用户发布过的breaking news title and ID  
     int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
     
     PLATON_SERIALIZE(UserInfo, (UserAddress)(UserNews)(UserCredibility))
+};
+
+//历史爆料哈希块
+struct NewsHashBlock
+{
+    platon::u128            nhBlockNum;                 //哈希块号
+    platon::bytes           newsHash;                   //哈希值
+
+    PLATON_SERIALIZE(NewsHashBlock, (nhBlockNum)(newsHash))
 };
 
 CONTRACT BreakingNews: public platon::Contract
@@ -66,7 +76,7 @@ public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>              mBreakingNews;      //存放breaking news
     platon::StorageType<"Users"_n, std::map<std::string, UserInfo>>     mUsers;             //存放用户信息，这个后续再考虑下要不要
     platon::StorageType<"NewsCount"_n, platon::u128>                    mNewsCount;         //当前已发布的news数量，自增用于生成爆料唯一标识
-    platon::StorageType<"hashChain"_n, std::vector<platon::bytes>>      mNewsHashChain;     //爆料哈希链，后续爆料信息会滚动删除，链上仅存哈希链信息用于验证信息是否真实
+    platon::StorageType<"hashChain"_n, NewsHashBlock>                   mNewsHashChain;     //爆料哈希链，后续爆料信息会滚动删除，链上仅存哈希链信息用于验证信息是否真实
     platon::StorageType<"Expired_VP"_n, std::vector<Viewpoint>>         mExVP;              //用于存放后续爆料信息滚动删除后，该爆料的支持、反对观点
 };
 
