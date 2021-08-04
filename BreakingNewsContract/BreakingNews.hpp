@@ -20,22 +20,45 @@ struct Message{
 };
 
 //观点，观点包括支持和反对
-struct Viewpoint : public Message
+struct Viewpoint
 {
+    //观点消息头
     bool            point;          //支持true，反对false
     platon::u128    ViewpointID;    //观点唯一标识
     platon::u128    NewID;          //该观点对应的爆料标识
-    PLATON_SERIALIZE_DERIVED(Viewpoint, Message, (point)(ViewpointID)(NewID))
+
+    //观点消息体
+	std::string                         msgUserAddress;         //消息发布者地址
+	std::string                         msgContent;             //消息内容
+	std::vector<std::string>            msgImages;              //图片链接列表
+	std::vector<std::string>            msgUp;                  //消息点赞者地址列表
+	std::vector<std::string>            msgDown;                //消息踩者地址列表
+
+	uint64_t                            BlockNumber;            //该消息最后观点发布的区块号
+
+    PLATON_SERIALIZE(Viewpoint, (point)(ViewpointID)(NewID)(msgUserAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber))
 };
 
 //一条爆料
-struct News: public Message
+struct News
 {
+    //爆料消息头
     std::string                             NewTitle;               //爆料标题
     platon::u128                            NewID;                  //爆料唯一标识
+
+	//爆料消息体
+	std::string                         msgUserAddress;         //消息发布者地址
+	std::string                         msgContent;             //消息内容
+	std::vector<std::string>            msgImages;              //图片链接列表
+	std::vector<std::string>            msgUp;                  //消息点赞者地址列表
+	std::vector<std::string>            msgDown;                //消息踩者地址列表
+
+	uint64_t                            BlockNumber;            //该消息最后观点发布的区块号
+
+    //该爆料跟帖的观点
     std::vector<Viewpoint>                  Viewpoints;             //这条爆料后面跟帖的观点
 
-    PLATON_SERIALIZE_DERIVED(News, Message, (NewTitle)(NewID)(Viewpoints))
+    PLATON_SERIALIZE(News, (NewTitle)(NewID)(msgUserAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(Viewpoints))
 };
 
 //爆料摘要，用于用户查询时返回数据
