@@ -11,8 +11,8 @@ struct Message{
     std::string                         msgUserAddress;         //消息发布者地址
     std::string                         msgContent;             //消息内容
     std::vector<std::string>            msgImages;              //图片链接列表
-    std::vector<std::string>            msgUp;                  //观点点赞者地址列表
-    std::vector<std::string>            msgDown;                //观点踩者地址列表
+    std::vector<std::string>            msgUp;                  //消息点赞者地址列表
+    std::vector<std::string>            msgDown;                //消息踩者地址列表
 
     uint64_t                            BlockNumber;            //该消息最后观点发布的区块号
 
@@ -38,7 +38,7 @@ struct News: public Message
     PLATON_SERIALIZE_DERIVED(News, Message, (NewTitle)(NewID)(Viewpoints))
 };
 
-//爆料摘要
+//爆料摘要，用于用户查询时返回数据
 struct NewsSummary
 {
 	std::string                             NewTitle;               //爆料标题
@@ -54,7 +54,7 @@ struct NewsSummary
 //用户信息
 struct UserInfo {
     std::string                                                     UserAddress;            //用户地址
-    std::vector<NewsSummary>                                        UserNews;               //用户发布过的breaking news title and ID  
+    std::vector<platon::u128>                                       UserNews;               //用户发布过的爆料的NewID
     int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
     
     PLATON_SERIALIZE(UserInfo, (UserAddress)(UserNews)(UserCredibility))
@@ -74,7 +74,7 @@ CONTRACT BreakingNews: public platon::Contract
 
 public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>              mBreakingNews;      //存放breaking news
-    platon::StorageType<"Users"_n, std::map<std::string, UserInfo>>     mUsers;             //存放用户信息，这个后续再考虑下要不要
+    //platon::StorageType<"Users"_n, std::map<std::string, UserInfo>>     mUsers;             //存放用户信息，这个后续再考虑下要不要
     platon::StorageType<"NewsCount"_n, platon::u128>                    mNewsCount;         //当前已发布的news数量，自增用于生成爆料唯一标识
     platon::StorageType<"hashChain"_n, NewsHashBlock>                   mNewsHashChain;     //爆料哈希链，后续爆料信息会滚动删除，链上仅存哈希链信息用于验证信息是否真实
     platon::StorageType<"Expired_VP"_n, std::vector<Viewpoint>>         mExVP;              //用于存放后续爆料信息滚动删除后，该爆料的支持、反对观点
