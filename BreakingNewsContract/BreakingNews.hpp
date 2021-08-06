@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <memory>
 #include <list>
 
 //普通消息
@@ -115,35 +114,35 @@ CONTRACT BreakingNews: public platon::Contract
 public:
     ACTION void init();
 
-    ACTION std::string& createNews(const std::string& title,
+    ACTION std::string createNews(const std::string& title,
                                   const std::string& content, 
                                   std::vector<std::string>& image, 
                                   const std::string& createTime);
 
-    ACTION std::string& createViewPoint(const std::string& title,
+    ACTION std::string createViewPoint(const std::string& title,
                                 platon::u128 ID,
                                 const std::string& content,
                                 std::vector<std::string>& image,
                                 bool isSupported,
                                 const std::string& createTime);
 
-    CONST UserSummary& getUsers();
+    CONST UserSummary getUsers();
 
-    CONST News& getNews();
+    CONST News getNews();
 
     //给news（爆料）点赞的相关操作
     //like和dislike操作中，需要先判断是否先前已经有针对该news的相反操作
-    ACTION std::string& likeNews(platon::u128 newsID);
-    ACTION std::string& cancellikeNews(platon::u128 newsID);
-    ACTION std::string& dislikeNews(platon::u128 newsID);
-    ACTION std::string& canceldislikeNews(platon::u128 newsID);
+    ACTION std::string likeNews(platon::u128 newsID);
+    ACTION std::string cancellikeNews(platon::u128 newsID);
+    ACTION std::string dislikeNews(platon::u128 newsID);
+    ACTION std::string canceldislikeNews(platon::u128 newsID);
 
     //给Viewpoint（观点）点赞的相关操作
     //like和dislike操作中，需要先判断是否先前已经有针对该Viewpoint的相反操作
-    ACTION std::string& likeViewpoint(platon::u128 newsID);
-    ACTION std::string& cancellikeViewpoint(platon::u128 newsID);
-    ACTION std::string& dislikeViewpoint(platon::u128 newsID);
-    ACTION std::string& canceldislikeViewpoint(platon::u128 newsID);
+    ACTION std::string likeViewpoint(platon::u128 newsID);
+    ACTION std::string cancellikeViewpoint(platon::u128 newsID);
+    ACTION std::string dislikeViewpoint(platon::u128 newsID);
+    ACTION std::string canceldislikeViewpoint(platon::u128 newsID);
 
     //超级权限操作
     //删帖
@@ -152,11 +151,11 @@ public:
     ACTION void clearViewpoint(platon::u128 vpID);
 
 public:
-    platon::StorageType<"BreakingNews"_n, std::list<std::shared_ptr<News>>>                 mBreakingNews;      //存放breaking news
-    platon::StorageType<"Users"_n, std::list<std::shared_ptr<UserInfo>>>                    mUsers;             //存放用户信息，这个后续再考虑下要不要
+    platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
+    platon::StorageType<"Users"_n, std::list<UserInfo>>                    mUsers;             //存放用户信息，这个后续再考虑下要不要
     platon::StorageType<"NewsCount"_n, platon::u128>                                        mNewsCount;         //当前已发布的news、viewpoint编号，自增用于生成唯一标识
-    platon::StorageType<"hashChain"_n, std::list<std::shared_ptr<NewsHashBlock>>>           mNewsHashChain;     //爆料哈希链，后续爆料信息会滚动删除，链上仅存哈希链信息用于验证信息是否真实
-    platon::StorageType<"Viewpoints"_n, std::vector<std::shared_ptr<Viewpoint>>>            mVP;                //用于存放观点，观点单独存，便于查找
+    platon::StorageType<"hashChain"_n, std::list<NewsHashBlock>>           mNewsHashChain;     //爆料哈希链，后续爆料信息会滚动删除，链上仅存哈希链信息用于验证信息是否真实
+    platon::StorageType<"Viewpoints"_n, std::vector<Viewpoint>>            mVP;                //用于存放观点，观点单独存，便于查找
 
 private:
     platon::StorageType<"Owner"_n, std::pair<platon::Address, bool>>                        _mOwner;            //合约所有者地址，即部署者，黑客松中留个特殊权限
