@@ -119,16 +119,15 @@ public:
                                   std::vector<std::string>& image, 
                                   const std::string& createTime);
 
-    ACTION std::string createViewPoint(const std::string& title,
-                                platon::u128 ID,
+    ACTION std::string createViewPoint(platon::u128 ID,
                                 const std::string& content,
                                 std::vector<std::string>& image,
                                 bool isSupported,
                                 const std::string& createTime);
 
-    CONST UserSummary getUsers();
+    CONST std::list<UserSummary> getUsers();
 
-    CONST News getNews();
+    CONST std::list<News> getNews();
 
     //给news（爆料）点赞的相关操作
     //like和dislike操作中，需要先判断是否先前已经有针对该news的相反操作
@@ -149,6 +148,9 @@ public:
     ACTION void clear();
     ACTION void clearNews(platon::u128 newsID);
     ACTION void clearViewpoint(platon::u128 vpID);
+
+private:
+    UserInfo* _getUser(const std::string& userAddr);
 
 public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
