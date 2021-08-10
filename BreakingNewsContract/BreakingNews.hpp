@@ -84,21 +84,21 @@ struct News
 //用户信息
 struct UserInfo {
     std::string                                                     UserAddress;            //用户地址
-    std::vector<platon::u128>                                       UserNews;               //用户发布过的爆料的NewID，
-    std::vector<platon::u128>                                       UserViewpoints;         //用户发布过的观点ID，
+    //std::vector<platon::u128>                                       UserNews;               //用户发布过的爆料的NewID，
+    //std::vector<platon::u128>                                       UserViewpoints;         //用户发布过的观点ID，
     int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
     
-    PLATON_SERIALIZE(UserInfo, (UserAddress)(UserNews)(UserViewpoints)(UserCredibility))
+    PLATON_SERIALIZE(UserInfo, (UserAddress)/*(UserNews)(UserViewpoints)*/(UserCredibility))
 };
 
 //用户信息，用于输出
-struct UserSummary
-{
-    std::string                                                     UserAddress;            //用户地址
-    int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
+//struct UserSummary
+//{
+//    std::string                                                     UserAddress;            //用户地址
+//    int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
 
-    PLATON_SERIALIZE(UserSummary, (UserAddress)(UserCredibility))
-};
+//    PLATON_SERIALIZE(UserSummary, (UserAddress)(UserCredibility))
+//};
 
 //历史爆料哈希块
 struct NewsHashBlock
@@ -127,7 +127,7 @@ public:
                                 bool isSupported,
                                 const std::string& createTime);
 
-    CONST std::list<UserSummary> getUsers();
+    CONST std::list<UserInfo> getUsers();
 
     CONST std::list<News> getNews();
 
@@ -157,12 +157,12 @@ private:
 public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
     platon::StorageType<"Users"_n, std::list<UserInfo>>                    mUsers;             //存放用户信息，这个后续再考虑下要不要
-    platon::StorageType<"NewsCount"_n, platon::u128>                                        mNewsCount;         //当前已发布的news、viewpoint编号，自增用于生成唯一标识
+    platon::StorageType<"NewsCount"_n, platon::u128>                       mNewsCount;         //当前已发布的news、viewpoint编号，自增用于生成唯一标识
     platon::StorageType<"hashChain"_n, std::list<NewsHashBlock>>           mNewsHashChain;     //爆料哈希链，后续爆料信息会滚动删除，链上仅存哈希链信息用于验证信息是否真实
     platon::StorageType<"Viewpoints"_n, std::vector<Viewpoint>>            mVP;                //用于存放观点，观点单独存，便于查找
 
 private:
-    platon::StorageType<"Owner"_n, std::pair<platon::Address, bool>>                        _mOwner;            //合约所有者地址，即部署者，黑客松中留个特殊权限
+    platon::StorageType<"Owner"_n, std::pair<platon::Address, bool>>       _mOwner;            //合约所有者地址，即部署者，黑客松中留个特殊权限
 };
 
 PLATON_DISPATCH(BreakingNews, (init)(getOwner)(createNews)(createViewPoint)(getUsers)(getNews)(likeNews)(cancellikeNews)(dislikeNews)(canceldislikeNews)(likeViewpoint)(cancellikeViewpoint)(dislikeViewpoint)(canceldislikeViewpoint)(clear)(clearNews)(clearViewpoint))

@@ -1,6 +1,6 @@
 #include "BreakingNews.hpp"
 
-const std::string hrp = "atp";
+const std::string hrp = "lat";
 
 void BreakingNews::init()
 {
@@ -41,14 +41,14 @@ std::string BreakingNews::createNews(const std::string& title,
         UserInfo curUser;
         curUser.UserAddress = curNews.msgauthorAddress;
         curUser.UserCredibility = 0;
-        curUser.UserNews.push_back(curNews.NewID);
+        //curUser.UserNews.push_back(curNews.NewID);
 
         mUsers.self().push_back(curUser);
     }
-    else
-    {
-        userPtr->UserNews.push_back(curNews.NewID);
-    }
+    //else
+    //{
+    //    userPtr->UserNews.push_back(curNews.NewID);
+    //}
 
     return "success";
 }
@@ -83,47 +83,200 @@ std::string BreakingNews::createViewPoint(platon::u128 ID,
         UserInfo curUser;
         curUser.UserAddress = curVP.msgauthorAddress;
         curUser.UserCredibility = 0;
-        curUser.UserNews.push_back(curVP.ViewpointID);
+        //curUser.UserNews.push_back(curVP.ViewpointID);
 
         mUsers.self().push_back(curUser);
     }
-    else
-    {
-        userPtr->UserViewpoints.push_back(curVP.ViewpointID);
-    }
+    //else
+    //{
+    //    userPtr->UserViewpoints.push_back(curVP.ViewpointID);
+    //}
+
+    //后续加入Viewpoint影响News可信度的代码
+    /***********************************/
 
     return "success";
 }
 
-std::list<UserSummary> BreakingNews::getUsers()
+std::list<UserInfo> BreakingNews::getUsers()
 {
-    return std::list<UserSummary>();
+    return mUsers.self();
 }
 
 std::list<News> BreakingNews::getNews()
 {
-    return std::list<News>();
+    std::list<News> News_Output;
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        News curNews = *newsItr;
+
+        for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+        {
+            if (curNews.NewID == vpItr->NewID)
+            {
+                curNews.Viewpoints.push_back(*vpItr);
+            }
+        }
+
+        News_Output.push_back(curNews);
+    }
+
+    return News_Output;
 }
 
 //给news（爆料）点赞的相关操作
 //like和dislike操作中，需要先判断是否先前已经有针对该news的相反操作
 std::string BreakingNews::likeNews(platon::u128 newsID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == newsID)
+        {
+            //先消灭disLike中的记录
+            auto differentItr = newsItr->msgDown.begin();
+            while (differentItr != newsItr->msgDown.end())
+            {
+                if (*differentItr == userAddrStr)
+                {
+                    newsItr->msgDown.erase(differentItr);
+                    break;
+                }
+
+                ++differentItr;
+            }
+            
+            //再插入like列表中，注意查重
+            auto sameItr = newsItr->msgUp.begin();
+            bool find = false;
+            while (sameItr != newsItr->msgUp.end())
+            {
+                if (*sameItr == userAddrStr)
+                {
+                    find = true;
+                    break;
+                }
+
+                ++sameItr;
+            }
+
+            if (!find)
+            {
+                newsItr->msgUp.push_back(userAddrStr);
+            }
+            
+            break;
+        }
+    }
+
     return "success";
 }
 
 std::string BreakingNews::cancellikeNews(platon::u128 newsID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == newsID)
+        {
+            //消灭Like中的记录
+            auto LikeItr = newsItr->msgUp.begin();
+            while (LikeItr != newsItr->msgUp.end())
+            {
+                if (*LikeItr == userAddrStr)
+                {
+                    newsItr->msgUp.erase(LikeItr);
+                    break;
+                }
+
+                ++LikeItr;
+            }
+            
+            break;
+        }
+    }
+
     return "success";
 }
 
 std::string BreakingNews::dislikeNews(platon::u128 newsID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == newsID)
+        {
+            //先消灭Like中的记录
+            auto differentItr = newsItr->msgUp.begin();
+            while (differentItr != newsItr->msgUp.end())
+            {
+                if (*differentItr == userAddrStr)
+                {
+                    newsItr->msgUp.erase(differentItr);
+                    break;
+                }
+
+                ++differentItr;
+            }
+            
+            //再插入disLike列表中，注意查重
+            auto sameItr = newsItr->msgDown.begin();
+            bool find = false;
+            while (sameItr != newsItr->msgDown.end())
+            {
+                if (*sameItr == userAddrStr)
+                {
+                    find = true;
+                    break;
+                }
+
+                ++sameItr;
+            }
+
+            if (!find)
+            {
+                newsItr->msgDown.push_back(userAddrStr);
+            }
+            
+            break;
+        }
+    }
+
     return "success";
 }
 
 std::string BreakingNews::canceldislikeNews(platon::u128 newsID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == newsID)
+        {
+            //先消灭disLike中的记录
+            auto disLiketItr = newsItr->msgDown.begin();
+            while (disLiketItr != newsItr->msgDown.end())
+            {
+                if (*disLiketItr == userAddrStr)
+                {
+                    newsItr->msgDown.erase(disLiketItr);
+                    break;
+                }
+
+                ++disLiketItr;
+            }
+            
+            break;
+        }
+    }
+
     return "success";
 }
 
