@@ -1,11 +1,16 @@
 #include "BreakingNews.hpp"
 
-const std::string& hrp = "atp";
+const std::string hrp = "atp";
 
 void BreakingNews::init()
 {
     _mOwner.self() = std::pair<platon::Address, bool>(platon::platon_origin(), true);
     mNewsCount.self() = 0;
+}
+
+std::string BreakingNews::getOwner()
+{
+    return platon::encode(_mOwner.self().first, hrp);
 }
 
 std::string BreakingNews::createNews(const std::string& title,

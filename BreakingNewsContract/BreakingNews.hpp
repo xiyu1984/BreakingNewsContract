@@ -114,6 +114,8 @@ CONTRACT BreakingNews: public platon::Contract
 public:
     ACTION void init();
 
+    CONST std::string getOwner();
+
     ACTION std::string createNews(const std::string& title,
                                   const std::string& content, 
                                   std::vector<std::string>& image, 
@@ -163,4 +165,4 @@ private:
     platon::StorageType<"Owner"_n, std::pair<platon::Address, bool>>                        _mOwner;            //合约所有者地址，即部署者，黑客松中留个特殊权限
 };
 
-PLATON_DISPATCH(BreakingNews, (init)(createNews)(createViewPoint)(getUsers)(getNews)(likeNews)(cancellikeNews)(dislikeNews)(canceldislikeNews)(likeViewpoint)(cancellikeViewpoint)(dislikeViewpoint)(canceldislikeViewpoint)(clear)(clearNews)(clearViewpoint))
+PLATON_DISPATCH(BreakingNews, (init)(getOwner)(createNews)(createViewPoint)(getUsers)(getNews)(likeNews)(cancellikeNews)(dislikeNews)(canceldislikeNews)(likeViewpoint)(cancellikeViewpoint)(dislikeViewpoint)(canceldislikeViewpoint)(clear)(clearNews)(clearViewpoint))
