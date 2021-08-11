@@ -136,36 +136,10 @@ std::string BreakingNews::likeNews(platon::u128 newsID)
         if (newsItr->NewID == newsID)
         {
             //先消灭disLike中的记录
-            auto differentItr = newsItr->msgDown.begin();
-            while (differentItr != newsItr->msgDown.end())
-            {
-                if (*differentItr == userAddrStr)
-                {
-                    newsItr->msgDown.erase(differentItr);
-                    break;
-                }
-
-                ++differentItr;
-            }
+            newsItr->cancleDislike(userAddrStr);
             
             //再插入like列表中，注意查重
-            auto sameItr = newsItr->msgUp.begin();
-            bool find = false;
-            while (sameItr != newsItr->msgUp.end())
-            {
-                if (*sameItr == userAddrStr)
-                {
-                    find = true;
-                    break;
-                }
-
-                ++sameItr;
-            }
-
-            if (!find)
-            {
-                newsItr->msgUp.push_back(userAddrStr);
-            }
+            newsItr->addLike(userAddrStr);
             
             break;
         }
@@ -184,17 +158,7 @@ std::string BreakingNews::cancellikeNews(platon::u128 newsID)
         if (newsItr->NewID == newsID)
         {
             //消灭Like中的记录
-            auto LikeItr = newsItr->msgUp.begin();
-            while (LikeItr != newsItr->msgUp.end())
-            {
-                if (*LikeItr == userAddrStr)
-                {
-                    newsItr->msgUp.erase(LikeItr);
-                    break;
-                }
-
-                ++LikeItr;
-            }
+            newsItr->cancleLike(userAddrStr);
             
             break;
         }
@@ -213,36 +177,10 @@ std::string BreakingNews::dislikeNews(platon::u128 newsID)
         if (newsItr->NewID == newsID)
         {
             //先消灭Like中的记录
-            auto differentItr = newsItr->msgUp.begin();
-            while (differentItr != newsItr->msgUp.end())
-            {
-                if (*differentItr == userAddrStr)
-                {
-                    newsItr->msgUp.erase(differentItr);
-                    break;
-                }
-
-                ++differentItr;
-            }
+            newsItr->cancleLike(userAddrStr);
             
             //再插入disLike列表中，注意查重
-            auto sameItr = newsItr->msgDown.begin();
-            bool find = false;
-            while (sameItr != newsItr->msgDown.end())
-            {
-                if (*sameItr == userAddrStr)
-                {
-                    find = true;
-                    break;
-                }
-
-                ++sameItr;
-            }
-
-            if (!find)
-            {
-                newsItr->msgDown.push_back(userAddrStr);
-            }
+            newsItr->addDislike(userAddrStr);
             
             break;
         }
@@ -261,17 +199,7 @@ std::string BreakingNews::canceldislikeNews(platon::u128 newsID)
         if (newsItr->NewID == newsID)
         {
             //先消灭disLike中的记录
-            auto disLiketItr = newsItr->msgDown.begin();
-            while (disLiketItr != newsItr->msgDown.end())
-            {
-                if (*disLiketItr == userAddrStr)
-                {
-                    newsItr->msgDown.erase(disLiketItr);
-                    break;
-                }
-
-                ++disLiketItr;
-            }
+            newsItr->cancleDislike(userAddrStr);
             
             break;
         }
@@ -335,3 +263,194 @@ UserInfo* BreakingNews::_getUser(const std::string& userAddr)
     return NULL;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//News
+//在以下接口中，会改变news可信度
+void News::addLike(const std::string& userAddrStr)
+{
+	//再插入like列表中，注意查重
+	auto sameItr = msgUp.begin();
+	bool find = false;
+	while (sameItr != msgUp.end())
+	{
+		if (*sameItr == userAddrStr)
+		{
+			find = true;
+			break;
+		}
+
+		++sameItr;
+	}
+
+	if (!find)
+	{
+		msgUp.push_back(userAddrStr);
+
+		//改变可信度
+		/*********************************/
+
+	}
+}
+
+void News::cancleLike(const std::string& userAddrStr)
+{
+	//消灭Like中的记录
+	auto LikeItr = msgUp.begin();
+	while (LikeItr != msgUp.end())
+	{
+		if (*LikeItr == userAddrStr)
+		{
+			msgUp.erase(LikeItr);
+
+			//改变可信度
+			/*********************************/
+
+
+			break;
+		}
+
+		++LikeItr;
+	}
+}
+
+void News::addDislike(const std::string& userAddrStr)
+{
+	//再插入disLike列表中，注意查重
+	auto sameItr = msgDown.begin();
+	bool find = false;
+	while (sameItr != msgDown.end())
+	{
+		if (*sameItr == userAddrStr)
+		{
+			find = true;
+			break;
+		}
+
+		++sameItr;
+	}
+
+	if (!find)
+	{
+		msgDown.push_back(userAddrStr);
+
+        //改变可信度
+        /*********************************/
+
+	}
+}
+
+void News::cancleDislike(const std::string& userAddrStr)
+{
+	auto dislikeItr = msgDown.begin();
+	while (dislikeItr != msgDown.end())
+	{
+		if (*dislikeItr == userAddrStr)
+		{
+			msgDown.erase(dislikeItr);
+
+            //改变可信度
+            /*********************************/
+
+
+			break;
+		}
+
+		++dislikeItr;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//Viewpoints
+//在以下接口中，会改变VP可信度
+void Viewpoint::addLike(const std::string& userAddrStr)
+{
+	//再插入like列表中，注意查重
+	auto sameItr = msgUp.begin();
+	bool find = false;
+	while (sameItr != msgUp.end())
+	{
+		if (*sameItr == userAddrStr)
+		{
+			find = true;
+			break;
+		}
+
+		++sameItr;
+	}
+
+	if (!find)
+	{
+		msgUp.push_back(userAddrStr);
+
+		//改变可信度
+		/*********************************/
+
+	}
+}
+
+void Viewpoint::cancleLike(const std::string& userAddrStr)
+{
+	//消灭Like中的记录
+	auto LikeItr = msgUp.begin();
+	while (LikeItr != msgUp.end())
+	{
+		if (*LikeItr == userAddrStr)
+		{
+			msgUp.erase(LikeItr);
+
+			//改变可信度
+			/*********************************/
+
+
+			break;
+		}
+
+		++LikeItr;
+	}
+}
+
+void Viewpoint::addDislike(const std::string& userAddrStr)
+{
+	//再插入disLike列表中，注意查重
+	auto sameItr = msgDown.begin();
+	bool find = false;
+	while (sameItr != msgDown.end())
+	{
+		if (*sameItr == userAddrStr)
+		{
+			find = true;
+			break;
+		}
+
+		++sameItr;
+	}
+
+	if (!find)
+	{
+		msgDown.push_back(userAddrStr);
+
+        //改变可信度
+        /*********************************/
+
+	}
+}
+
+void Viewpoint::cancleDislike(const std::string& userAddrStr)
+{
+	auto dislikeItr = msgDown.begin();
+	while (dislikeItr != msgDown.end())
+	{
+		if (*dislikeItr == userAddrStr)
+		{
+			msgDown.erase(dislikeItr);
+			//改变可信度
+			/*********************************/
+
+
+			break;
+		}
+
+		++dislikeItr;
+	}
+}

@@ -41,6 +41,12 @@ struct Viewpoint
     int16_t                             Credibility;        //用户可信度，满分100，初始分数0，最低为-100？
 
     PLATON_SERIALIZE(Viewpoint, (point)(ViewpointID)(NewID)(msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(createTime)(Credibility))
+
+	//在以下接口中，会计算可信度
+	void addLike(const std::string& userAddr);
+	void cancleLike(const std::string& userAddr);
+	void addDislike(const std::string& userAddr);
+	void cancleDislike(const std::string& userAddr);
 };
 
 //一条爆料
@@ -66,6 +72,12 @@ struct News
     int16_t                             Credibility;        //用户可信度，满分100，初始分数0，最低为-100？
 
     PLATON_SERIALIZE(News, (NewTitle)(NewID)(msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(createTime)(Viewpoints)(Credibility))
+
+    //在以下接口中，会计算可信度
+    void addLike(const std::string& userAddr);
+    void cancleLike(const std::string& userAddr);
+    void addDislike(const std::string& userAddr);
+    void cancleDislike(const std::string& userAddr);
 };
 
 ////爆料摘要，用于用户查询时返回数据
