@@ -152,10 +152,10 @@ public:
 
     //给Viewpoint（观点）点赞的相关操作
     //like和dislike操作中，需要先判断是否先前已经有针对该Viewpoint的相反操作
-    ACTION std::string likeViewpoint(platon::u128 newsID);
-    ACTION std::string cancellikeViewpoint(platon::u128 newsID);
-    ACTION std::string dislikeViewpoint(platon::u128 newsID);
-    ACTION std::string canceldislikeViewpoint(platon::u128 newsID);
+    ACTION std::string likeViewpoint(platon::u128 vpID);
+    ACTION std::string cancellikeViewpoint(platon::u128 vpID);
+    ACTION std::string dislikeViewpoint(platon::u128 vpID);
+    ACTION std::string canceldislikeViewpoint(platon::u128 vpID);
 
     //超级权限操作
     //删帖

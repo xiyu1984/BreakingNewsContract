@@ -210,23 +210,85 @@ std::string BreakingNews::canceldislikeNews(platon::u128 newsID)
 
 //给Viewpoint（观点）点赞的相关操作
 //like和dislike操作中，需要先判断是否先前已经有针对该Viewpoint的相反操作
-std::string BreakingNews::likeViewpoint(platon::u128 newsID)
+std::string BreakingNews::likeViewpoint(platon::u128 vpID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            //先消灭dislike中的记录
+            vpItr->cancleDislike(userAddrStr);
+
+            //再加入like中的记录
+            vpItr->addLike(userAddrStr);
+
+            break;
+        }
+    }
+
     return "success";
 }
 
-std::string BreakingNews::cancellikeViewpoint(platon::u128 newsID)
+std::string BreakingNews::cancellikeViewpoint(platon::u128 vpID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            //先消灭like中的记录
+            vpItr->cancleLike(userAddrStr);
+
+            break;
+        }
+    }
+
     return "success";
 }
 
-std::string BreakingNews::dislikeViewpoint(platon::u128 newsID)
+std::string BreakingNews::dislikeViewpoint(platon::u128 vpID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            //先消灭Like中的记录
+            vpItr->cancleLike(userAddrStr);
+
+            //再加入Dislike中
+            vpItr->addDislike(userAddrStr);
+
+            break;
+        }
+    }
+
     return "success";
 }
 
-std::string BreakingNews::canceldislikeViewpoint(platon::u128 newsID)
+std::string BreakingNews::canceldislikeViewpoint(platon::u128 vpID)
 {
+    auto userAddress = platon::platon_origin();
+    std::string userAddrStr = platon::encode(userAddress, hrp);
+
+    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            //先消灭dislike中的记录
+            vpItr->cancleDislike(userAddrStr);
+
+            break;
+        }
+    }
+
     return "success";
 }
 
@@ -234,17 +296,59 @@ std::string BreakingNews::canceldislikeViewpoint(platon::u128 newsID)
 //删帖
 void BreakingNews::clear()
 {
+    auto userAddress = platon::platon_origin();
+    if (_mOwner.self().first != userAddress)
+    {
+        return;
+    }
 
+    mBreakingNews.self().clear();
+    mUsers.self().clear();
+    mNewsCount.self() = 0;
+    mNewsHashChain.self().clear();
+    mVP.self().clear();
 }
 
 void BreakingNews::clearNews(platon::u128 newsID)
 {
+    auto userAddress = platon::platon_origin();
+    if (_mOwner.self().first != userAddress)
+    {
+        return;
+    }
 
+    auto newsItr = mBreakingNews.self().begin();
+    while (newsItr != mBreakingNews.self().end())
+    {
+        if (newsItr->NewID == newsID)
+        {
+            mBreakingNews.self().erase(newsItr);
+            break;
+        }
+
+        ++newsItr;
+    }
 }
 
 void BreakingNews::clearViewpoint(platon::u128 vpID)
 {
+    auto userAddress = platon::platon_origin();
+    if (_mOwner.self().first != userAddress)
+    {
+        return;
+    }
 
+    auto vpItr = mVP.self().begin();
+    while (vpItr != mVP.self().end())
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            mVP.self().erase(vpItr);
+            break;
+        }
+
+        ++vpItr;
+    }
 }
 
 UserInfo* BreakingNews::_getUser(const std::string& userAddr)
