@@ -5,8 +5,8 @@ from client_sdk_python.utils import contracts
 
 false = False
 true = True
-instanceABI = [{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"addCallResult","topic":1,"type":"Event"},{"constant":false,"input":[],"name":"init","output":"void","type":"Action"},{"constant":false,"input":[{"name":"eles","type":"int32[]"}],"name":"testAddFromGeneralProxy","output":"bool","type":"Action"},{"constant":true,"input":[],"name":"testU128Return","output":"uint128","type":"Action"}]
-instanceContractAddr = 'lat1052k7czn6z288p8a8ym42yxy2v02jfr30tc243'
+instanceABI = [{"anonymous":false,"input":[{"name":"topic","type":"string"},{"name":"arg1","type":"int32"}],"name":"addCallResult","topic":1,"type":"Event"},{"constant":false,"input":[],"name":"init","output":"void","type":"Action"},{"constant":false,"input":[{"name":"eles","type":"int32[]"}],"name":"testAddFromGeneralProxy","output":"bool","type":"Action"},{"constant":true,"input":[],"name":"testU128Return","output":"uint128","type":"Action"},{"constant":true,"input":[],"name":"testForAdd","output":"int32","type":"Action"},{"constant":false,"input":[{"name":"count","type":"int32"}],"name":"testForAdd2","output":"int32","type":"Action"},{"constant":false,"input":[{"name":"count","type":"int32"}],"name":"testForMulti","output":"int32","type":"Action"},{"baseclass":[],"fields":[{"name":"myBase","type":"string"}],"name":"baseStr","type":"struct"},{"baseclass":["baseStr"],"fields":[{"name":"ID","type":"uint128"}],"name":"simpleStr","type":"struct"},{"baseclass":["simpleStr"],"fields":[{"name":"myName","type":"string"},{"name":"myNumber","type":"uint16[]"}],"name":"complexStr","type":"struct"},{"constant":true,"input":[],"name":"GetCS","output":"complexStr","type":"Action"}]
+instanceContractAddr = 'lat1g4gy86lnwr9r3jwrtx4r6wxvy2qu8d7y0ucslr'
 
 clientAccount = 'lat1ar0s6re3qpe3rt39523qw4jars6s4sdhak459n'
 
@@ -57,5 +57,34 @@ def testU128Retuen():
     instanceCalled = platon.wasmcontract(address=instanceContractAddr, abi=instanceABI,vmtype=1)
     print(instanceCalled.functions.testU128Return().call())
 
+
+def testMultiAdd():
+    w3 = Web3(HTTPProvider(devIP))
+    platon = PlatON(w3)
+
+    instanceCalled = platon.wasmcontract(address=instanceContractAddr, abi=instanceABI,vmtype=1)
+    count = 10000000
+    print(instanceCalled.functions.testForAdd2(count).call())
+    tx_receipt = instanceCalled.functions.testForAdd2(count).transact({'from':clientAccount,'gas':1500000})
+    receipt_info = platon.waitForTransactionReceipt(tx_receipt)
+    print(receipt_info)
+
+    print('*****************************************************************')
+    mul = 10000
+    print(instanceCalled.functions.testForMulti(mul).call())
+    tx_receipt = instanceCalled.functions.testForMulti(mul).transact({'from':clientAccount,'gas':1500000})
+    receipt_info = platon.waitForTransactionReceipt(tx_receipt)
+    print(receipt_info)
+
+
+def testComplexStr():
+    w3 = Web3(HTTPProvider(devIP))
+    platon = PlatON(w3)
+
+    instanceCalled = platon.wasmcontract(address=instanceContractAddr, abi=instanceABI,vmtype=1)
+    print(instanceCalled.functions.GetCS().call())
+
 #generalProxy()
-testU128Retuen()
+#testU128Retuen()
+#testMultiAdd()
+testComplexStr()
