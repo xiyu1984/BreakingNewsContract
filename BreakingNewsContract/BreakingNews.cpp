@@ -59,6 +59,22 @@ std::string BreakingNews::createViewPoint(platon::u128 ID,
                                 bool isSupported,
                                 const std::string& createTime)
 {
+    //先判断news是否存在
+    bool isFound = false;
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == ID)
+        {
+            isFound = true;
+            break;
+        }
+    }
+
+    if (!isFound)
+    {
+        return "error: news not found!";
+    }
+
     ++mNewsCount.self();
 
     //insert viewpoint
