@@ -124,6 +124,9 @@ struct NewsHashBlock
 CONTRACT BreakingNews: public platon::Contract
 {
 public:
+
+    PLATON_EVENT1(AddNews, std::string, platon::u128)
+
     ACTION void init();
 
     CONST std::string getOwner();

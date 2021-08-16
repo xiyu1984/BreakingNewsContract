@@ -50,6 +50,8 @@ std::string BreakingNews::createNews(const std::string& title,
     //    userPtr->UserNews.push_back(curNews.NewID);
     //}
 
+    PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews.NewID);
+
     return "success";
 }
 
