@@ -5,8 +5,11 @@ from client_sdk_python.utils import contracts
 
 import json
 
-breakingNewsContractAddr = 'lat17005cansj4xwrdfcxttz003tg0m0drqugwm670'
+#breakingNewsContractAddr = 'lat1ufhrh5zwx84q6zeh5t7jvpp0sw4e7uzmhagchw'
 #breakingNewsContractAddr = 'lat1xezn8pp6vfaju8f47zh4dcxgt0nmqqhj9x703e'
+#breakingNewsContractAddr = 'lat13uqj8py6hul8y37t90wqh3lpgpxgcnk8xp278q'
+breakingNewsContractAddr = 'lat19tt7mtpz8xpydapa9gsnf98p7zstu5gq4tle7k'
+
 clientAccount = 'lat1ar0s6re3qpe3rt39523qw4jars6s4sdhak459n'
 devIP = 'http://47.241.69.26:6789'
 
@@ -25,6 +28,9 @@ def BNtest():
     tx_receipt = hello.functions.createNews('hello', 'world is changing', [], '2021.8.13').transact({'from':clientAccount,'gas':1500000})
     receipt_info = platon.waitForTransactionReceipt(tx_receipt)
     print(receipt_info)
+
+    topic_param = hello.events.AddNews().processReceipt(receipt_info)
+    print(topic_param)
 
     #print(hello.functions.getNews().call())
 
@@ -91,9 +97,26 @@ def clearData():
     print(receipt_info)
 
 
+def checkNews():
+    fp = open('./PlatON/config/BreakingNews.abi.json')
+    breakingNews_abi = json.load(fp)
+
+    w3 = Web3(HTTPProvider(devIP))
+    platon = PlatON(w3)
+    hello = platon.wasmcontract(address=breakingNewsContractAddr, abi=breakingNews_abi, vmtype=1)
+
+    tx_receipt = hello.functions.checkNews().transact({'from':clientAccount,'gas':1500000})
+    receipt_info = platon.waitForTransactionReceipt(tx_receipt)
+    #print(receipt_info)
+
+    topic_param = hello.events.AddNews().processReceipt(receipt_info)
+    print(topic_param)
+
+
 #BNtest()
-simpleGet()
+#simpleGet()
 #addViewpoint()
 #likeNews()
 #dislikeNews()
 #clearData()
+checkNews()
