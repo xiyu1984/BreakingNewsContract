@@ -25,7 +25,7 @@ struct Viewpoint
 {
     //观点消息头
     bool            point;          //支持true，反对false
-    platon::u128    ViewpointID;    //观点唯一标识
+    uint64_t    ViewpointID;    //观点唯一标识
     platon::u128    NewID;          //该观点对应的爆料标识
 
     //观点消息体
@@ -125,7 +125,7 @@ CONTRACT BreakingNews: public platon::Contract
 {
 public:
 
-    PLATON_EVENT1(AddNews, std::string, platon::u128)
+    PLATON_EVENT1(AddNews, std::string, News)
 
     ACTION void init();
 
@@ -160,6 +160,9 @@ public:
     ACTION std::string dislikeViewpoint(platon::u128 vpID);
     ACTION std::string canceldislikeViewpoint(platon::u128 vpID);
 
+    //测试事件
+    ACTION void checkNews();
+
     //超级权限操作
     //删帖
     ACTION void clear();
@@ -180,4 +183,4 @@ private:
     platon::StorageType<"Owner"_n, std::pair<platon::Address, bool>>       _mOwner;            //合约所有者地址，即部署者，黑客松中留个特殊权限
 };
 
-PLATON_DISPATCH(BreakingNews, (init)(getOwner)(createNews)(createViewPoint)(getUsers)(getNews)(likeNews)(cancellikeNews)(dislikeNews)(canceldislikeNews)(likeViewpoint)(cancellikeViewpoint)(dislikeViewpoint)(canceldislikeViewpoint)(clear)(clearNews)(clearViewpoint))
+PLATON_DISPATCH(BreakingNews, (init)(getOwner)(createNews)(createViewPoint)(getUsers)(getNews)(likeNews)(cancellikeNews)(dislikeNews)(canceldislikeNews)(likeViewpoint)(cancellikeViewpoint)(dislikeViewpoint)(canceldislikeViewpoint)(checkNews)(clear)(clearNews)(clearViewpoint))

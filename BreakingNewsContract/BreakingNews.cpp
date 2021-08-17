@@ -50,7 +50,7 @@ std::string BreakingNews::createNews(const std::string& title,
     //    userPtr->UserNews.push_back(curNews.NewID);
     //}
 
-    PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews.NewID);
+    //PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews.newsID);
 
     return "success";
 }
@@ -308,6 +308,36 @@ std::string BreakingNews::canceldislikeViewpoint(platon::u128 vpID)
     }
 
     return "success";
+}
+
+//测试事件
+void BreakingNews::checkNews()
+{
+    std::list<News> News_Output;
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        News curNews = *newsItr;
+
+        for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+        {
+            if (curNews.NewID == vpItr->NewID)
+            {
+                curNews.Viewpoints.push_back(*vpItr);
+            }
+        }
+
+        News_Output.push_back(curNews);
+    }
+
+    auto outPutNewsItr = News_Output.begin();
+    if (News_Output.end() != outPutNewsItr)
+    {
+        PLATON_EMIT_EVENT1(AddNews, "Create News" , *outPutNewsItr);
+    }
+    else
+    {
+        PLATON_EMIT_EVENT1(AddNews, "Create News" , News());
+    }
 }
 
 //超级权限操作
