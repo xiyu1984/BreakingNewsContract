@@ -50,7 +50,7 @@ std::string BreakingNews::createNews(const std::string& title,
     //    userPtr->UserNews.push_back(curNews.NewID);
     //}
 
-    //PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews.newsID);
+    PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews);
 
     return "success";
 }
@@ -68,51 +68,54 @@ std::string BreakingNews::createViewPoint(platon::u128 ID,
         if (newsItr->NewID == ID)
         {
             isFound = true;
+
+            ++mNewsCount.self();
+
+            //insert viewpoint
+            Viewpoint curVP;
+            curVP.point = isSupported;
+            curVP.ViewpointID = mNewsCount.self();
+            curVP.NewID = ID;
+            auto authorAddress = platon::platon_origin();
+            curVP.msgauthorAddress = platon::encode(authorAddress, hrp);
+            curVP.msgContent = content;
+            curVP.msgImages = image;
+            curVP.BlockNumber = platon_block_number();
+            curVP.createTime = createTime;
+            curVP.Credibility = 0;
+
+            mVP.self().push_back(curVP);
+
+            //insert user
+            UserInfo* userPtr = _getUser(curVP.msgauthorAddress);
+            if (NULL == userPtr)
+            {
+                UserInfo curUser;
+                curUser.UserAddress = curVP.msgauthorAddress;
+                curUser.UserCredibility = 0;
+                //curUser.UserNews.push_back(curVP.ViewpointID);
+
+                mUsers.self().push_back(curUser);
+            }
+            //else
+            //{
+            //    userPtr->UserViewpoints.push_back(curVP.ViewpointID);
+            //}
+
+            //后续加入Viewpoint影响News可信度的代码
+            /***********************************/
+
             break;
         }
     }
 
     if (!isFound)
     {
+        PLATON_EMIT_EVENT1(BNMessage, "Create Viewpoint" , "error: news not found!");
         return "error: news not found!";
     }
 
-    ++mNewsCount.self();
-
-    //insert viewpoint
-    Viewpoint curVP;
-    curVP.point = isSupported;
-    curVP.ViewpointID = mNewsCount.self();
-    curVP.NewID = ID;
-    auto authorAddress = platon::platon_origin();
-    curVP.msgauthorAddress = platon::encode(authorAddress, hrp);
-    curVP.msgContent = content;
-    curVP.msgImages = image;
-    curVP.BlockNumber = platon_block_number();
-    curVP.createTime = createTime;
-    curVP.Credibility = 0;
-
-    mVP.self().push_back(curVP);
-
-    //insert user
-    UserInfo* userPtr = _getUser(curVP.msgauthorAddress);
-    if (NULL == userPtr)
-    {
-        UserInfo curUser;
-        curUser.UserAddress = curVP.msgauthorAddress;
-        curUser.UserCredibility = 0;
-        //curUser.UserNews.push_back(curVP.ViewpointID);
-
-        mUsers.self().push_back(curUser);
-    }
-    //else
-    //{
-    //    userPtr->UserViewpoints.push_back(curVP.ViewpointID);
-    //}
-
-    //后续加入Viewpoint影响News可信度的代码
-    /***********************************/
-
+    PLATON_EMIT_EVENT1(BNMessage, "Create Viewpoint" , "success");
     return "success";
 }
 
@@ -149,10 +152,12 @@ std::string BreakingNews::likeNews(platon::u128 newsID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
     {
         if (newsItr->NewID == newsID)
         {
+            isFound = true;
             //先消灭disLike中的记录
             newsItr->cancleDislike(userAddrStr);
             
@@ -163,6 +168,13 @@ std::string BreakingNews::likeNews(platon::u128 newsID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "like news" , "error: news not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "like new" , "success");
     return "success";
 }
 
@@ -171,10 +183,12 @@ std::string BreakingNews::cancellikeNews(platon::u128 newsID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
     {
         if (newsItr->NewID == newsID)
         {
+            isFound = true;
             //消灭Like中的记录
             newsItr->cancleLike(userAddrStr);
             
@@ -182,6 +196,13 @@ std::string BreakingNews::cancellikeNews(platon::u128 newsID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "cancel like news" , "error: news not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "cancel like news" , "success");
     return "success";
 }
 
@@ -190,10 +211,12 @@ std::string BreakingNews::dislikeNews(platon::u128 newsID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
     {
         if (newsItr->NewID == newsID)
         {
+            isFound = true;
             //先消灭Like中的记录
             newsItr->cancleLike(userAddrStr);
             
@@ -204,6 +227,13 @@ std::string BreakingNews::dislikeNews(platon::u128 newsID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "dislike news" , "error: news not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "dislike news" , "success");
     return "success";
 }
 
@@ -212,10 +242,12 @@ std::string BreakingNews::canceldislikeNews(platon::u128 newsID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
     {
         if (newsItr->NewID == newsID)
         {
+            isFound = true;
             //先消灭disLike中的记录
             newsItr->cancleDislike(userAddrStr);
             
@@ -223,6 +255,13 @@ std::string BreakingNews::canceldislikeNews(platon::u128 newsID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "cancel dislike news" , "error: news not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "cancel dislike news" , "success");
     return "success";
 }
 
@@ -233,10 +272,12 @@ std::string BreakingNews::likeViewpoint(platon::u128 vpID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            isFound = true;
             //先消灭dislike中的记录
             vpItr->cancleDislike(userAddrStr);
 
@@ -247,6 +288,13 @@ std::string BreakingNews::likeViewpoint(platon::u128 vpID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "like Viewpoint" , "error: Viewpoint not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "like Viewpoint" , "success");
     return "success";
 }
 
@@ -255,10 +303,12 @@ std::string BreakingNews::cancellikeViewpoint(platon::u128 vpID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            isFound = true;
             //先消灭like中的记录
             vpItr->cancleLike(userAddrStr);
 
@@ -266,6 +316,13 @@ std::string BreakingNews::cancellikeViewpoint(platon::u128 vpID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "cancel like Viewpoint" , "error: Viewpoint not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "cancel like Viewpoint" , "success");
     return "success";
 }
 
@@ -274,10 +331,12 @@ std::string BreakingNews::dislikeViewpoint(platon::u128 vpID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            isFound = true;
             //先消灭Like中的记录
             vpItr->cancleLike(userAddrStr);
 
@@ -288,6 +347,13 @@ std::string BreakingNews::dislikeViewpoint(platon::u128 vpID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "dislike Viewpoint" , "error: Viewpoint not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "dislike Viewpoint" , "success");
     return "success";
 }
 
@@ -296,10 +362,12 @@ std::string BreakingNews::canceldislikeViewpoint(platon::u128 vpID)
     auto userAddress = platon::platon_origin();
     std::string userAddrStr = platon::encode(userAddress, hrp);
 
+    bool isFound = false;
     for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            isFound = true;
             //先消灭dislike中的记录
             vpItr->cancleDislike(userAddrStr);
 
@@ -307,11 +375,18 @@ std::string BreakingNews::canceldislikeViewpoint(platon::u128 vpID)
         }
     }
 
+    if (!isFound)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "cancel dislike Viewpoint" , "error: Viewpoint not found!");
+        return "error: news not found!";
+    }
+
+    PLATON_EMIT_EVENT1(BNMessage, "cancel dislike Viewpoint" , "success");
     return "success";
 }
 
 //测试事件
-void BreakingNews::checkNews()
+bool BreakingNews::checkNews()
 {
     std::list<News> News_Output;
     for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
@@ -338,6 +413,8 @@ void BreakingNews::checkNews()
     {
         PLATON_EMIT_EVENT1(AddNews, "Create News" , News());
     }
+
+    return true;
 }
 
 //超级权限操作

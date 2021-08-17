@@ -126,6 +126,7 @@ CONTRACT BreakingNews: public platon::Contract
 public:
 
     PLATON_EVENT1(AddNews, std::string, News)
+    PLATON_EVENT1(BNMessage, std::string, std::string)
 
     ACTION void init();
 
@@ -161,7 +162,7 @@ public:
     ACTION std::string canceldislikeViewpoint(platon::u128 vpID);
 
     //测试事件
-    ACTION void checkNews();
+    ACTION bool checkNews();
 
     //超级权限操作
     //删帖
