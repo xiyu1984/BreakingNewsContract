@@ -32,24 +32,19 @@ std::string BreakingNews::createNews(const std::string& title,
     curNews.createTime = createTime;
     curNews.Credibility = 0;
 
-    mBreakingNews.self().push_back(curNews);
-
-    //insert user
+    //get user
     UserInfo* userPtr = _getUser(curNews.msgauthorAddress);
+    //下面这个判断主要是为了调试
     if (NULL == userPtr)
     {
-        UserInfo curUser;
-        curUser.UserAddress = curNews.msgauthorAddress;
-        curUser.UserCredibility = 0;
-        //curUser.UserNews.push_back(curNews.NewID);
-
-        mUsers.self().push_back(curUser);
+        PLATON_EMIT_EVENT1(AddNews, "Error: NULL when _getUser", curNews);
+        return "error";
     }
-    //else
-    //{
-    //    userPtr->UserNews.push_back(curNews.NewID);
-    //}
+    //后续加入计算News可信度的代码
+    /***********************************/
 
+
+    mBreakingNews.self().push_back(curNews);
     PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews);
 
     return "success";
@@ -84,27 +79,19 @@ std::string BreakingNews::createViewPoint(platon::u128 ID,
             curVP.createTime = createTime;
             curVP.Credibility = 0;
 
-            mVP.self().push_back(curVP);
-
-            //insert user
+            //get user
             UserInfo* userPtr = _getUser(curVP.msgauthorAddress);
+            //下面这个判断主要是为了调试
             if (NULL == userPtr)
             {
-                UserInfo curUser;
-                curUser.UserAddress = curVP.msgauthorAddress;
-                curUser.UserCredibility = 0;
-                //curUser.UserNews.push_back(curVP.ViewpointID);
-
-                mUsers.self().push_back(curUser);
+                PLATON_EMIT_EVENT1(BNMessage, "Create Viewpoint", "error: NULL when _getUser");
+                return "error: NULL when _getUser!";
             }
-            //else
-            //{
-            //    userPtr->UserViewpoints.push_back(curVP.ViewpointID);
-            //}
-
-            //后续加入Viewpoint影响News可信度的代码
+            //后续加入计算vp可信度、Viewpoint影响News可信度的代码
             /***********************************/
 
+
+            mVP.self().push_back(curVP);
             break;
         }
     }
@@ -157,12 +144,21 @@ std::string BreakingNews::likeNews(platon::u128 newsID)
     {
         if (newsItr->NewID == newsID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
             isFound = true;
             //先消灭disLike中的记录
-            newsItr->cancleDislike(userAddrStr);
+            newsItr->cancleDislike(userPtr);
+            //计算可信度，考虑直接传入上面接口
             
             //再插入like列表中，注意查重
-            newsItr->addLike(userAddrStr);
+            newsItr->addLike(userPtr);
+            //计算可信度，考虑直接传入上面接口
             
             break;
         }
@@ -188,9 +184,16 @@ std::string BreakingNews::cancellikeNews(platon::u128 newsID)
     {
         if (newsItr->NewID == newsID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
             isFound = true;
             //消灭Like中的记录
-            newsItr->cancleLike(userAddrStr);
+            newsItr->cancleLike(userPtr);
             
             break;
         }
@@ -216,12 +219,20 @@ std::string BreakingNews::dislikeNews(platon::u128 newsID)
     {
         if (newsItr->NewID == newsID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
+
             isFound = true;
             //先消灭Like中的记录
-            newsItr->cancleLike(userAddrStr);
+            newsItr->cancleLike(userPtr);
             
             //再插入disLike列表中，注意查重
-            newsItr->addDislike(userAddrStr);
+            newsItr->addDislike(userPtr);
             
             break;
         }
@@ -247,9 +258,17 @@ std::string BreakingNews::canceldislikeNews(platon::u128 newsID)
     {
         if (newsItr->NewID == newsID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
+
             isFound = true;
             //先消灭disLike中的记录
-            newsItr->cancleDislike(userAddrStr);
+            newsItr->cancleDislike(userPtr);
             
             break;
         }
@@ -277,12 +296,20 @@ std::string BreakingNews::likeViewpoint(platon::u128 vpID)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
+
             isFound = true;
             //先消灭dislike中的记录
-            vpItr->cancleDislike(userAddrStr);
+            vpItr->cancleDislike(userPtr, this);
 
             //再加入like中的记录
-            vpItr->addLike(userAddrStr);
+            vpItr->addLike(userPtr, this);
 
             break;
         }
@@ -308,9 +335,17 @@ std::string BreakingNews::cancellikeViewpoint(platon::u128 vpID)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
+
             isFound = true;
             //先消灭like中的记录
-            vpItr->cancleLike(userAddrStr);
+            vpItr->cancleLike(userPtr, this);
 
             break;
         }
@@ -336,12 +371,20 @@ std::string BreakingNews::dislikeViewpoint(platon::u128 vpID)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
+
             isFound = true;
             //先消灭Like中的记录
-            vpItr->cancleLike(userAddrStr);
+            vpItr->cancleLike(userPtr, this);
 
             //再加入Dislike中
-            vpItr->addDislike(userAddrStr);
+            vpItr->addDislike(userPtr, this);
 
             break;
         }
@@ -367,9 +410,17 @@ std::string BreakingNews::canceldislikeViewpoint(platon::u128 vpID)
     {
         if (vpItr->ViewpointID == vpID)
         {
+            UserInfo* userPtr = _getUser(userAddrStr);
+            //下面这个判断主要是为了调试
+            if (NULL == userPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                return "error: NULL when _getUser";
+            }
+
             isFound = true;
             //先消灭dislike中的记录
-            vpItr->cancleDislike(userAddrStr);
+            vpItr->cancleDislike(userPtr, this);
 
             break;
         }
@@ -489,20 +540,27 @@ UserInfo* BreakingNews::_getUser(const std::string& userAddr)
         ++userItr;
     }
 
-    return NULL;
+    //没有找到，则创建一个
+    UserInfo curUser;
+    curUser.UserAddress = userAddr;
+    curUser.UserCredibility = _mSysParams.self().User_init;
+    mUsers.self().push_back(curUser);
+    auto r_usrItr = mUsers.self().rbegin();
+
+    return &(*r_usrItr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //News
 //在以下接口中，会改变news可信度
-void News::addLike(const std::string& userAddrStr)
+void News::addLike(UserInfo* userPtr)
 {
 	//再插入like列表中，注意查重
 	auto sameItr = msgUp.begin();
 	bool find = false;
 	while (sameItr != msgUp.end())
 	{
-		if (*sameItr == userAddrStr)
+		if (*sameItr == userPtr->UserAddress)
 		{
 			find = true;
 			break;
@@ -513,7 +571,7 @@ void News::addLike(const std::string& userAddrStr)
 
 	if (!find)
 	{
-		msgUp.push_back(userAddrStr);
+		msgUp.push_back(userPtr->UserAddress);
 
 		//改变可信度
 		/*********************************/
@@ -521,13 +579,13 @@ void News::addLike(const std::string& userAddrStr)
 	}
 }
 
-void News::cancleLike(const std::string& userAddrStr)
+void News::cancleLike(UserInfo* userPtr)
 {
 	//消灭Like中的记录
 	auto LikeItr = msgUp.begin();
 	while (LikeItr != msgUp.end())
 	{
-		if (*LikeItr == userAddrStr)
+		if (*LikeItr == userPtr->UserAddress)
 		{
 			msgUp.erase(LikeItr);
 
@@ -542,14 +600,14 @@ void News::cancleLike(const std::string& userAddrStr)
 	}
 }
 
-void News::addDislike(const std::string& userAddrStr)
+void News::addDislike(UserInfo* userPtr)
 {
 	//再插入disLike列表中，注意查重
 	auto sameItr = msgDown.begin();
 	bool find = false;
 	while (sameItr != msgDown.end())
 	{
-		if (*sameItr == userAddrStr)
+		if (*sameItr == userPtr->UserAddress)
 		{
 			find = true;
 			break;
@@ -560,7 +618,7 @@ void News::addDislike(const std::string& userAddrStr)
 
 	if (!find)
 	{
-		msgDown.push_back(userAddrStr);
+		msgDown.push_back(userPtr->UserAddress);
 
         //改变可信度
         /*********************************/
@@ -568,12 +626,12 @@ void News::addDislike(const std::string& userAddrStr)
 	}
 }
 
-void News::cancleDislike(const std::string& userAddrStr)
+void News::cancleDislike(UserInfo* userPtr)
 {
 	auto dislikeItr = msgDown.begin();
 	while (dislikeItr != msgDown.end())
 	{
-		if (*dislikeItr == userAddrStr)
+		if (*dislikeItr == userPtr->UserAddress)
 		{
 			msgDown.erase(dislikeItr);
 
@@ -592,14 +650,14 @@ void News::cancleDislike(const std::string& userAddrStr)
 //////////////////////////////////////////////////////////////////////////
 //Viewpoints
 //在以下接口中，会改变VP可信度
-void Viewpoint::addLike(const std::string& userAddrStr)
+void Viewpoint::addLike(UserInfo* userPtr, BreakingNews* bnPtr)
 {
 	//再插入like列表中，注意查重
 	auto sameItr = msgUp.begin();
 	bool find = false;
 	while (sameItr != msgUp.end())
 	{
-		if (*sameItr == userAddrStr)
+		if (*sameItr == userPtr->UserAddress)
 		{
 			find = true;
 			break;
@@ -610,7 +668,7 @@ void Viewpoint::addLike(const std::string& userAddrStr)
 
 	if (!find)
 	{
-		msgUp.push_back(userAddrStr);
+		msgUp.push_back(userPtr->UserAddress);
 
 		//改变可信度
 		/*********************************/
@@ -618,13 +676,13 @@ void Viewpoint::addLike(const std::string& userAddrStr)
 	}
 }
 
-void Viewpoint::cancleLike(const std::string& userAddrStr)
+void Viewpoint::cancleLike(UserInfo* userPtr, BreakingNews* bnPtr)
 {
 	//消灭Like中的记录
 	auto LikeItr = msgUp.begin();
 	while (LikeItr != msgUp.end())
 	{
-		if (*LikeItr == userAddrStr)
+		if (*LikeItr == userPtr->UserAddress)
 		{
 			msgUp.erase(LikeItr);
 
@@ -639,14 +697,14 @@ void Viewpoint::cancleLike(const std::string& userAddrStr)
 	}
 }
 
-void Viewpoint::addDislike(const std::string& userAddrStr)
+void Viewpoint::addDislike(UserInfo* userPtr, BreakingNews* bnPtr)
 {
 	//再插入disLike列表中，注意查重
 	auto sameItr = msgDown.begin();
 	bool find = false;
 	while (sameItr != msgDown.end())
 	{
-		if (*sameItr == userAddrStr)
+		if (*sameItr == userPtr->UserAddress)
 		{
 			find = true;
 			break;
@@ -657,7 +715,7 @@ void Viewpoint::addDislike(const std::string& userAddrStr)
 
 	if (!find)
 	{
-		msgDown.push_back(userAddrStr);
+		msgDown.push_back(userPtr->UserAddress);
 
         //改变可信度
         /*********************************/
@@ -665,12 +723,12 @@ void Viewpoint::addDislike(const std::string& userAddrStr)
 	}
 }
 
-void Viewpoint::cancleDislike(const std::string& userAddrStr)
+void Viewpoint::cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr)
 {
 	auto dislikeItr = msgDown.begin();
 	while (dislikeItr != msgDown.end())
 	{
-		if (*dislikeItr == userAddrStr)
+		if (*dislikeItr == userPtr->UserAddress)
 		{
 			msgDown.erase(dislikeItr);
 			//改变可信度
@@ -682,4 +740,31 @@ void Viewpoint::cancleDislike(const std::string& userAddrStr)
 
 		++dislikeItr;
 	}
+}
+
+//BreakingNews class add interface
+News* _getNews(const platon::u128& newsID)
+{
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == newsID)
+        {
+            return &(*newsItr);
+        }
+    }
+
+    return NULL;
+}
+
+Viewpoint* _getViewpoint(const platon::u128& vpID)
+{
+    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            return &(*vpItr);
+        }
+    }
+
+    return NULL;    //后续有空都改成nullptr
 }

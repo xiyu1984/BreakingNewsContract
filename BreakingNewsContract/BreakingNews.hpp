@@ -7,6 +7,22 @@
 #include <map>
 #include <list>
 
+//用户信息
+struct UserInfo {
+    std::string                                                     UserAddress;            //用户地址
+    int32_t                                                         UserCredibility = 0;        //用户可信度，满分100，初始分数0，最低为-100？
+
+    //以下变量用于计算可信度
+    int32_t                     Cu_N_author = 0;
+    int32_t                     Cu_V_author = 0;
+    int32_t                     Cu_N_up_down = 0;
+    int32_t                     Cu_V_up_down = 0;
+
+    PLATON_SERIALIZE(UserInfo, (UserAddress)(UserCredibility)
+    (Cu_N_author)(Cu_V_author)(Cu_V_up_down))
+};
+
+CONTRACT BreakingNews;
 
 //观点，观点包括支持和反对
 struct Viewpoint
@@ -32,6 +48,8 @@ struct Viewpoint
     int32_t                             Cv_N = 0;
     int32_t                             Cv_up_down = 0;
     int32_t                             Cv_author = 0;
+
+    //Cv累积更改量
     int32_t                             delta_Cv = 0;
 
     PLATON_SERIALIZE(Viewpoint, 
@@ -40,10 +58,10 @@ struct Viewpoint
     (Cv_N)(Cv_up_down)(Cv_author)(delta_Cv))
 
 	//在以下接口中，会计算可信度
-	void addLike(const std::string& userAddr);
-	void cancleLike(const std::string& userAddr);
-	void addDislike(const std::string& userAddr);
-	void cancleDislike(const std::string& userAddr);
+	void addLike(UserInfo* userPtr, BreakingNews* bnPtr);
+	void cancleLike(UserInfo* userPtr, BreakingNews* bnPtr);
+	void addDislike(UserInfo* userPtr, BreakingNews* bnPtr);
+	void cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr);
 };
 
 //一条爆料
@@ -72,6 +90,8 @@ struct News
     int32_t                             Cn_V = 0;
     int32_t                             Cn_up_down = 0;
     int32_t                             Cn_author = 0;
+
+    //Cn累积更改量
     int32_t                             delta_Cn = 0;
 
     PLATON_SERIALIZE(News, 
@@ -81,25 +101,10 @@ struct News
         (Cn_V)(Cn_up_down)(Cn_author)(delta_Cn))
 
     //在以下接口中，会计算可信度
-    void addLike(const std::string& userAddr);
-    void cancleLike(const std::string& userAddr);
-    void addDislike(const std::string& userAddr);
-    void cancleDislike(const std::string& userAddr);
-};
-
-//用户信息
-struct UserInfo {
-    std::string                                                     UserAddress;            //用户地址
-    int32_t                                                         UserCredibility = 5000;        //用户可信度，满分100，初始分数0，最低为-100？
-    
-    //以下变量用于计算可信度
-    int32_t                     Cu_N_author = 0;
-    int32_t                     Cu_V_author = 0;
-    int32_t                     Cu_N_up_down = 0;
-    int32_t                     Cu_V_up_down = 0;
-
-    PLATON_SERIALIZE(UserInfo, (UserAddress)(UserCredibility)
-        (Cu_N_author)(Cu_V_author)(Cu_V_up_down))
+    void addLike(UserInfo* userPtr);
+    void cancleLike(UserInfo* userPtr);
+    void addDislike(UserInfo* userPtr);
+    void cancleDislike(UserInfo* userPtr);
 };
 
 //历史爆料哈希块
@@ -111,8 +116,47 @@ struct NewsHashBlock
     PLATON_SERIALIZE(NewsHashBlock, (nhBlockNum)(newsHash))
 };
 
-CONTRACT BreakingNews: public platon::Contract
+//保存系统参数，例如用于计算可信度的模型参数
+struct sysParams
 {
+    //output scale
+    int32_t             sysNumericalScale = 100;
+
+    //计算参数
+    //指数平均系数
+    int32_t             rho = 90 * sysNumericalScale / 100;
+
+    //viepoints
+    int32_t             View_alpha = 30 * sysNumericalScale / 100;
+    int32_t             View_beta = 40 * sysNumericalScale / 100;
+    int32_t             View_gama = 30 * sysNumericalScale / 100;
+
+    //news
+    int32_t             News_alpha = 40 * sysNumericalScale / 100;
+    int32_t             News_beta = 30 * sysNumericalScale / 100;
+    int32_t             News_gama = 30 * sysNumericalScale / 100;
+
+    //user
+    int32_t             User_init = 50 * sysNumericalScale;
+
+    int32_t             User_alpha = 40 * sysNumericalScale / 100;
+    int32_t             User_beta = 30 * sysNumericalScale / 100;
+    int32_t             User_gama = 20 * sysNumericalScale / 100;
+    int32_t             User_eta = 10 * sysNumericalScale / 100;
+
+    PLATON_SERIALIZE(sysParams, 
+        (sysNumericalScale)
+        (rho)
+        (View_alpha)(View_beta)(View_gama)
+        (News_alpha)(News_beta)(News_gama)
+        (User_alpha)(User_beta)(User_gama)(User_eta))
+};
+
+CONTRACT BreakingNews : public platon::Contract
+{
+    friend struct Viewpoint;
+    friend struct News;
+    friend struct UserInfo;
 public:
 
     PLATON_EVENT1(AddNews, std::string, News)
@@ -161,7 +205,14 @@ public:
     ACTION void clearViewpoint(platon::u128 vpID);
 
 private:
+    //有则返回，无则先创建，此接口返回一定不会为NULL
     UserInfo* _getUser(const std::string& userAddr);
+
+    //获取news，可能返回NULL
+    News* _getNews(const platon::u128& newsID);
+
+    //获取viewpoint，可能返回NULL
+    Viewpoint* _getViewpoint(const platon::u128& vpID);
 
 public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
@@ -172,6 +223,7 @@ public:
 
 private:
     platon::StorageType<"Owner"_n, std::pair<platon::Address, bool>>       _mOwner;            //合约所有者地址，即部署者，黑客松中留个特殊权限
+    platon::StorageType<"sysParam"_n, sysParams>                           _mSysParams;        //系统参数
 };
 
 PLATON_DISPATCH(BreakingNews, (init)(getOwner)(createNews)(createViewPoint)(getUsers)(getNews)(likeNews)(cancellikeNews)(dislikeNews)(canceldislikeNews)(likeViewpoint)(cancellikeViewpoint)(dislikeViewpoint)(canceldislikeViewpoint)(checkNews)(clear)(clearNews)(clearViewpoint))
