@@ -7,18 +7,6 @@
 #include <map>
 #include <list>
 
-//普通消息
-//struct Message{
-//    std::string                         msgauthorAddress;         //消息发布者地址
-//    std::string                         msgContent;             //消息内容
-//    std::vector<std::string>            msgImages;              //图片链接列表
-//    std::vector<std::string>            msgUp;                  //消息点赞者地址列表
-//    std::vector<std::string>            msgDown;                //消息踩者地址列表
-//
-//    uint64_t                            BlockNumber;            //该消息最后观点发布的区块号
-//
-//    PLATON_SERIALIZE(Message, (msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber))
-//};
 
 //观点，观点包括支持和反对
 struct Viewpoint
@@ -38,9 +26,18 @@ struct Viewpoint
 	uint64_t                            BlockNumber;            //该消息最后观点发布的区块号
     std::string                         createTime;             //该消息创建的时间（非确认时间）
 
-    int16_t                             Credibility;        //用户可信度，满分100，初始分数0，最低为-100？
+    int32_t                             Credibility = 0;        //用户可信度，满分100，初始分数0，最低为-100？
 
-    PLATON_SERIALIZE(Viewpoint, (point)(ViewpointID)(NewID)(msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(createTime)(Credibility))
+    //以下变量用于计算可信度，黑客松中暂时放在一起，正式版中需要在数据结构中解耦
+    int32_t                             Cv_N = 0;
+    int32_t                             Cv_up_down = 0;
+    int32_t                             Cv_author = 0;
+    int32_t                             delta_Cv = 0;
+
+    PLATON_SERIALIZE(Viewpoint, 
+        (point)(ViewpointID)(NewID)
+    (msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(createTime)(Credibility)
+    (Cv_N)(Cv_up_down)(Cv_author)(delta_Cv))
 
 	//在以下接口中，会计算可信度
 	void addLike(const std::string& userAddr);
@@ -69,9 +66,19 @@ struct News
     //该爆料跟帖的观点
     std::vector<Viewpoint>              Viewpoints;             //这条爆料后面跟帖的观点
 
-    int16_t                             Credibility;        //用户可信度，满分100，初始分数0，最低为-100？
+    int32_t                             Credibility = 0;        //用户可信度，满分100，初始分数0，最低为-100？
 
-    PLATON_SERIALIZE(News, (NewTitle)(NewID)(msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(createTime)(Viewpoints)(Credibility))
+    //以下变量用于计算可信度
+    int32_t                             Cn_V = 0;
+    int32_t                             Cn_up_down = 0;
+    int32_t                             Cn_author = 0;
+    int32_t                             delta_Cn = 0;
+
+    PLATON_SERIALIZE(News, 
+        (NewTitle)(NewID)
+    (msgauthorAddress)(msgContent)(msgImages)(msgUp)(msgDown)(BlockNumber)(createTime)
+    (Viewpoints)(Credibility)
+        (Cn_V)(Cn_up_down)(Cn_author)(delta_Cn))
 
     //在以下接口中，会计算可信度
     void addLike(const std::string& userAddr);
@@ -80,37 +87,20 @@ struct News
     void cancleDislike(const std::string& userAddr);
 };
 
-////爆料摘要，用于用户查询时返回数据
-//struct NewsSummary
-//{
-//	std::string                             NewTitle;               //爆料标题
-//	platon::u128                            NewID;                  //爆料唯一标识
-//    uint16_t                                Supporter;              //支持观点数量
-//    uint16_t                                Opponents;              //反对观点数量
-//	uint16_t                                Up;                     //点赞数量
-//	uint16_t                                Down;                   //踩数量
-//
-//    PLATON_SERIALIZE(NewsSummary, (NewTitle)(NewID)(Supporter)(Opponents)(Up)(Down))
-//};
-
 //用户信息
 struct UserInfo {
     std::string                                                     UserAddress;            //用户地址
-    //std::vector<platon::u128>                                       UserNews;               //用户发布过的爆料的NewID，
-    //std::vector<platon::u128>                                       UserViewpoints;         //用户发布过的观点ID，
-    int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
+    int32_t                                                         UserCredibility = 5000;        //用户可信度，满分100，初始分数0，最低为-100？
     
-    PLATON_SERIALIZE(UserInfo, (UserAddress)/*(UserNews)(UserViewpoints)*/(UserCredibility))
+    //以下变量用于计算可信度
+    int32_t                     Cu_N_author = 0;
+    int32_t                     Cu_V_author = 0;
+    int32_t                     Cu_N_up_down = 0;
+    int32_t                     Cu_V_up_down = 0;
+
+    PLATON_SERIALIZE(UserInfo, (UserAddress)(UserCredibility)
+        (Cu_N_author)(Cu_V_author)(Cu_V_up_down))
 };
-
-//用户信息，用于输出
-//struct UserSummary
-//{
-//    std::string                                                     UserAddress;            //用户地址
-//    int16_t                                                         UserCredibility;        //用户可信度，满分100，初始分数0，最低为-100？
-
-//    PLATON_SERIALIZE(UserSummary, (UserAddress)(UserCredibility))
-//};
 
 //历史爆料哈希块
 struct NewsHashBlock
