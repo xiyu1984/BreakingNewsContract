@@ -42,7 +42,8 @@ std::string BreakingNews::createNews(const std::string& title,
     }
     //后续加入计算News可信度的代码
     /***********************************/
-
+    curNews.Cn_author = _mSysParams.self().News_gama * userPtr->UserCredibility / _mSysParams.self().Coefficient;
+    curNews.Credibility = curNews.Cn_author;
 
     mBreakingNews.self().push_back(curNews);
     PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews);
@@ -89,7 +90,23 @@ std::string BreakingNews::createViewPoint(platon::u128 ID,
             }
             //后续加入计算vp可信度、Viewpoint影响News可信度的代码
             /***********************************/
+            int32_t isSupport = curVP.point ? 1 : -1;
+            curVP.Cv_author = isSupport * _mSysParams.self().View_alpha * newsItr->Credibility / _mSysParams.self().Coefficient;
+            curVP.Cv_N = _mSysParams.self().View_gama * userPtr->UserCredibility / _mSysParams.self().Coefficient;
+            curVP.Credibility = curVP.Cv_author + curVP.Cv_N;
 
+            int32_t curCreNews_V = newsItr->Cn_V;
+            newsItr->Cn_V = _mSysParams.self().rho * newsItr->Cn_V / _mSysParams.self().Coefficient +
+                _mSysParams.self().News_alpha * curVP.Credibility * isSupport * (1 * _mSysParams.self().Coefficient - _mSysParams.self().rho) / _mSysParams.self().Coefficient;
+            int32_t delta_Cn_V = newsItr->Cn_V - curCreNews_V;
+            newsItr->Credibility += delta_Cn_V;
+            newsItr->delta_Cn += delta_Cn_V;
+
+            if ((newsItr->delta_Cn >= _mSysParams.self().News_threshold) ||
+                (newsItr->delta_Cn <= -_mSysParams.self().News_threshold))
+            {
+                newsItr->updateNews(this);
+            }
 
             mVP.self().push_back(curVP);
             break;
@@ -550,6 +567,34 @@ UserInfo* BreakingNews::_getUser(const std::string& userAddr)
     return &(*r_usrItr);
 }
 
+//BreakingNews class add interface
+News* _getNews(const platon::u128& newsID)
+{
+    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
+    {
+        if (newsItr->NewID == newsID)
+        {
+            return &(*newsItr);
+        }
+    }
+
+    return NULL;
+}
+
+Viewpoint* _getViewpoint(const platon::u128& vpID)
+{
+    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
+    {
+        if (vpItr->ViewpointID == vpID)
+        {
+            return &(*vpItr);
+        }
+    }
+
+    return NULL;    //后续有空都改成nullptr
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //News
 //在以下接口中，会改变news可信度
@@ -644,6 +689,13 @@ void News::cancleDislike(UserInfo* userPtr)
 
 		++dislikeItr;
 	}
+}
+
+void News::updateNews(BreakingNews* bnPtr)
+{
+
+
+    delta_Cn = 0;
 }
 
 
@@ -742,29 +794,6 @@ void Viewpoint::cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr)
 	}
 }
 
-//BreakingNews class add interface
-News* _getNews(const platon::u128& newsID)
+void Viewpoint::updateView(BreakingNews* bnPtr)
 {
-    for (auto newsItr = mBreakingNews.self().begin(); newsItr != mBreakingNews.self().end(); ++newsItr)
-    {
-        if (newsItr->NewID == newsID)
-        {
-            return &(*newsItr);
-        }
-    }
-
-    return NULL;
-}
-
-Viewpoint* _getViewpoint(const platon::u128& vpID)
-{
-    for (auto vpItr = mVP.self().begin(); vpItr != mVP.self().end(); ++vpItr)
-    {
-        if (vpItr->ViewpointID == vpID)
-        {
-            return &(*vpItr);
-        }
-    }
-
-    return NULL;    //后续有空都改成nullptr
 }

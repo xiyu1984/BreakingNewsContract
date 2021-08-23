@@ -9,8 +9,8 @@
 
 //用户信息
 struct UserInfo {
-    std::string                                                     UserAddress;            //用户地址
-    int32_t                                                         UserCredibility = 0;        //用户可信度，满分100，初始分数0，最低为-100？
+    std::string                 UserAddress;            //用户地址
+    int32_t                     UserCredibility = 0;        //用户可信度，满分100，初始分数0，最低为-100？
 
     //以下变量用于计算可信度
     int32_t                     Cu_N_author = 0;
@@ -62,6 +62,9 @@ struct Viewpoint
 	void cancleLike(UserInfo* userPtr, BreakingNews* bnPtr);
 	void addDislike(UserInfo* userPtr, BreakingNews* bnPtr);
 	void cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr);
+
+    //根据ΔCv，更新相关user
+    void updateView(BreakingNews* bnPtr);
 };
 
 //一条爆料
@@ -105,6 +108,9 @@ struct News
     void cancleLike(UserInfo* userPtr);
     void addDislike(UserInfo* userPtr);
     void cancleDislike(UserInfo* userPtr);
+
+    //根据delta_News，更新相关View、user
+    void updateNews(BreakingNews* bnPtr);
 };
 
 //历史爆料哈希块
@@ -122,27 +128,31 @@ struct sysParams
     //output scale
     int32_t             sysNumericalScale = 100;
 
+    //所有比例系数的缩放比例，默认小数点后面4位
+    int32_t             Coefficient = 100;
     //计算参数
     //指数平均系数
-    int32_t             rho = 90 * sysNumericalScale / 100;
+    int32_t             rho = 9 * Coefficient / 10;
 
     //viepoints
-    int32_t             View_alpha = 30 * sysNumericalScale / 100;
-    int32_t             View_beta = 40 * sysNumericalScale / 100;
-    int32_t             View_gama = 30 * sysNumericalScale / 100;
+    int32_t             View_alpha = 3 * Coefficient / 10;
+    int32_t             View_beta = 4 * Coefficient / 10;
+    int32_t             View_gama = 3 * Coefficient / 10;
+    int32_t             View_threshold = 5 * sysNumericalScale;
 
     //news
-    int32_t             News_alpha = 40 * sysNumericalScale / 100;
-    int32_t             News_beta = 30 * sysNumericalScale / 100;
-    int32_t             News_gama = 30 * sysNumericalScale / 100;
+    int32_t             News_alpha = 4 * Coefficient / 10;
+    int32_t             News_beta = 3 * Coefficient / 10;
+    int32_t             News_gama = 3 * Coefficient / 10;
+    int32_t             News_threshold = 5 * sysNumericalScale;
 
     //user
     int32_t             User_init = 50 * sysNumericalScale;
 
-    int32_t             User_alpha = 40 * sysNumericalScale / 100;
-    int32_t             User_beta = 30 * sysNumericalScale / 100;
-    int32_t             User_gama = 20 * sysNumericalScale / 100;
-    int32_t             User_eta = 10 * sysNumericalScale / 100;
+    int32_t             User_alpha = 4 * Coefficient / 10;
+    int32_t             User_beta = 3 * Coefficient / 10;
+    int32_t             User_gama = 2 * Coefficient / 10;
+    int32_t             User_eta = 1 * Coefficient / 10;
 
     PLATON_SERIALIZE(sysParams, 
         (sysNumericalScale)
