@@ -45,6 +45,8 @@ std::string BreakingNews::createNews(const std::string& title,
     curNews.Cn_author = _mSysParams.self().News_gama * userPtr->UserCredibility / _mSysParams.self().Coefficient;
     curNews.Credibility = curNews.Cn_author;
 
+    userPtr->createNews_update(curNews.Credibility, this);
+
     mBreakingNews.self().push_back(curNews);
     PLATON_EMIT_EVENT1(AddNews, "Create News" , curNews);
 
@@ -94,6 +96,8 @@ std::string BreakingNews::createViewPoint(platon::u128 ID,
             curVP.Cv_author = isSupport * _mSysParams.self().View_alpha * newsItr->Credibility / _mSysParams.self().Coefficient;
             curVP.Cv_N = _mSysParams.self().View_gama * userPtr->UserCredibility / _mSysParams.self().Coefficient;
             curVP.Credibility = curVP.Cv_author + curVP.Cv_N;
+
+            userPtr->createView_update(curVP.Credibility, this);
 
             int32_t beforeCreNews_V = newsItr->Cn_V;
             newsItr->Cn_V = _mSysParams.self().rho * newsItr->Cn_V / _mSysParams.self().Coefficient +
@@ -734,9 +738,41 @@ void News::updateNews(BreakingNews* bnPtr)
     }
 
     //更新user，只更新跟news直接相关的user
+    //author
+    UserInfo* authorPtr = bnPtr->_getUser(msgauthorAddress);
+    //下面这个判断主要是为了调试
+    if (NULL == authorPtr)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "updateNews", "error: NULL when _getUser");
+        return "error: NULL when _getUser";
+    }
+    authorPtr->delta_News_updata_author(delta_Cn, bnPtr);
+
     //up users
+    for (auto userAddrItr = msgUp.begin(); userAddrItr != msgUp.end(); ++userAddrItr)
+    {
+        UserInfo* userPtr = bnPtr->_getUser(*userAddrItr);
+        //下面这个判断主要是为了调试
+        if (NULL == userPtr)
+        {
+            PLATON_EMIT_EVENT1(BNMessage, "updateNews", "error: NULL when _getUser");
+            return "error: NULL when _getUser";
+        }
+        userPtr->delta_News_update_up_down(delta_Cn, 1, bnPtr);
+    }
 
     //down users
+    for (auto userAddrItr = msgDown.begin(); userAddrItr != msgDown.end(); ++userAddrItr)
+    {
+        UserInfo* userPtr = bnPtr->_getUser(*userAddrItr);
+        //下面这个判断主要是为了调试
+        if (NULL == userPtr)
+        {
+            PLATON_EMIT_EVENT1(BNMessage, "updateNews", "error: NULL when _getUser");
+            return "error: NULL when _getUser";
+        }
+        userPtr->delta_News_update_up_down(delta_Cn, -1, bnPtr);
+    }
 
     delta_Cn = 0;
 }
@@ -870,4 +906,97 @@ void Viewpoint::delta_Cn_updata(int32_t delta_Cn, BreakingNews* bnPtr)
 
     Credibility += delta_Cv_N;
     delta_Cv += delta_Cv_N;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+//UserInfo methods
+void UserInfo::CredibilityAdjust(BreakingNews* bnPtr)
+{
+    if (UserCredibility <= 0)
+    {
+        //校正为output精度范围内小数点最后一位是1的数
+        UserCredibility = 1;
+    }
+}
+
+void UserInfo::createNews_update(int32_t C_News, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cu_N_author = Cu_N_author;
+    Cu_N_author = Cu_N_author * spPtr->rho / spPtr->Coefficient +
+        spPtr->User_alpha * C_News * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+
+    int32_t delta_Cu_Nauthor = Cu_N_author - before_Cu_N_author;
+    UserCredibility += delta_Cu_Nauthor;
+
+    CredibilityAdjust(bnPtr);
+}
+
+void UserInfo::createView_update(int32_t C_View, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cu_V_author = Cu_V_author;
+    Cu_V_author = Cu_V_author * spPtr->rho / spPtr->Coefficient +
+        spPtr->User_beta * C_View * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+
+    int32_t delta_Cu_Vauthor = Cu_V_author - before_Cu_V_author;
+    UserCredibility += delta_Cu_Vauthor;
+
+    CredibilityAdjust(bnPtr);
+}
+
+void UserInfo::delta_News_updata_author(int32_t delta_Cn, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cu_N_author = Cu_N_author;
+    Cu_N_author += spPtr->User_alpha * delta_Cn * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+    int32_t delta_Cu_Nauthor = Cu_N_author - before_Cu_N_author;
+
+    UserCredibility += delta_Cu_Nauthor;
+
+    CredibilityAdjust(bnPtr);
+}
+
+void UserInfo::delta_News_update_up_down(int32_t delta_Cn, int32_t isUp, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cu_N_up_down = Cu_N_up_down;
+    Cu_N_up_down += spPtr->User_gama * isUp * delta_Cn * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+
+    int32_t delta_Cu_Nupdown = Cu_N_up_down - before_Cu_N_up_down;
+
+    UserCredibility += delta_Cu_Nupdown;
+
+    CredibilityAdjust(bnPtr);
+}
+
+void UserInfo::delta_View_updata_author(int32_t delta_Cv, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cu_V_author = Cu_V_author;
+    Cu_V_author += spPtr->User_beta * delta_Cv * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+    int32_t delta_Cu_Vauthor = Cu_V_author - before_Cu_V_author;
+
+    UserCredibility += delta_Cu_Vauthor;
+
+    CredibilityAdjust(bnPtr);
+}
+
+void UserInfo::delta_View_update_up_down(int32_t delta_Cv, int32_t isUp, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cu_V_up_down = Cu_V_up_down;
+    Cu_V_up_down += spPtr->User_eta * isUp * delta_Cv * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+
+    int32_t delta_Cu_Vupdown = Cu_V_up_down - before_Cu_V_up_down;
+
+    UserCredibility += delta_Cu_Vupdown;
+
+    CredibilityAdjust(bnPtr);
 }

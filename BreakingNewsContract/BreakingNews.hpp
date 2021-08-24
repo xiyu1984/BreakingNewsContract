@@ -22,6 +22,27 @@ struct UserInfo {
 
     PLATON_SERIALIZE(UserInfo, (UserAddress)(UserCredibility)
     (Cu_N_author)(Cu_V_author)(Cu_V_up_down))
+
+    //UserCredibility校正，其取值范围是(0,+∞)
+    void CredibilityAdjust(BreakingNews* bnPtr);
+
+    //create News带来的用户可信度改变，鼓励发帖
+    void createNews_update(int32_t C_News, BreakingNews* bnPtr);
+
+    //create viewpoint带来的用户可信度改变，鼓励发帖
+    void createView_update(int32_t C_View, BreakingNews* bnPtr);
+
+    //根据ΔCn改变用户可信度
+    //author
+    void delta_News_updata_author(int32_t delta_Cn, BreakingNews* bnPtr);
+    //up/down
+    void delta_News_update_up_down(int32_t delta_Cn, int32_t isUp, BreakingNews* bnPtr);
+    
+    //根据ΔCv改变用户可信度
+    //author
+    void delta_View_updata_author(int32_t delta_Cv, BreakingNews* bnPtr);
+    //up/down
+    void delta_View_update_up_down(int32_t delta_Cv, int32_t isUp, BreakingNews* bnPtr);
 };
 
 //观点，观点包括支持和反对
@@ -153,7 +174,7 @@ struct sysParams
     int32_t             News_threshold = 5 * sysNumericalScale;
 
     //user
-    int32_t             User_init = 50 * sysNumericalScale;
+    int32_t             User_init = 51 * sysNumericalScale;
 
     int32_t             User_alpha = 4 * Coefficient / 10;
     int32_t             User_beta = 3 * Coefficient / 10;
