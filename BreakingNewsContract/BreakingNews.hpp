@@ -7,6 +7,8 @@
 #include <map>
 #include <list>
 
+CONTRACT BreakingNews;
+
 //用户信息
 struct UserInfo {
     std::string                 UserAddress;            //用户地址
@@ -21,8 +23,6 @@ struct UserInfo {
     PLATON_SERIALIZE(UserInfo, (UserAddress)(UserCredibility)
     (Cu_N_author)(Cu_V_author)(Cu_V_up_down))
 };
-
-CONTRACT BreakingNews;
 
 //观点，观点包括支持和反对
 struct Viewpoint
@@ -65,6 +65,9 @@ struct Viewpoint
 
     //根据ΔCv，更新相关user
     void updateView(BreakingNews* bnPtr);
+
+    //根据ΔCn，更新view，对于ΔCv的改变，只积累，不更新
+    void delta_Cn_updata(int32_t delta_Cn, BreakingNews* bnPtr);
 };
 
 //一条爆料
@@ -104,13 +107,16 @@ struct News
         (Cn_V)(Cn_up_down)(Cn_author)(delta_Cn))
 
     //在以下接口中，会计算可信度
-    void addLike(UserInfo* userPtr);
-    void cancleLike(UserInfo* userPtr);
-    void addDislike(UserInfo* userPtr);
-    void cancleDislike(UserInfo* userPtr);
+    void addLike(UserInfo* userPtr, BreakingNews* bnPtr);
+    void cancleLike(UserInfo* userPtr, BreakingNews* bnPtr);
+    void addDislike(UserInfo* userPtr, BreakingNews* bnPtr);
+    void cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr);
 
-    //根据delta_News，更新相关View、user
+    //根据delta_Cn，更新相关View、user的可信度
     void updateNews(BreakingNews* bnPtr);
+
+    //由点赞、踩带来的可信度改变
+    void up_down_CreUpdate(UserInfo* userPtr, int32_t coe, BreakingNews* bnPtr);
 };
 
 //历史爆料哈希块
@@ -223,6 +229,9 @@ private:
 
     //获取viewpoint，可能返回NULL
     Viewpoint* _getViewpoint(const platon::u128& vpID);
+
+    //获取系统参数
+    sysParams* _getSysParams();
 
 public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
