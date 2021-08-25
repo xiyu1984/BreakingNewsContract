@@ -795,6 +795,7 @@ void News::updataWithCv(int32_t delta_Cv, int32_t isSupport, BreakingNews* bnPtr
     sysParams* spPtr = bnPtr->_getSysParams();
 
     int32_t delta_Cn_by_Cv = spPtr->News_alpha * isSupport * delta_Cv * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+    Cn_V += delta_Cn_by_Cv;
     Credibility += delta_Cn_by_Cv;
     delta_Cn += delta_Cn_by_Cv;
 }
