@@ -347,16 +347,32 @@ std::string BreakingNews::likeViewpoint(platon::u128 vpID)
             //下面这个判断主要是为了调试
             if (NULL == userPtr)
             {
-                PLATON_EMIT_EVENT1(BNMessage, "like news", "error: NULL when _getUser");
+                PLATON_EMIT_EVENT1(BNMessage, "like viewpoint", "error: NULL when _getUser");
                 return "error: NULL when _getUser";
             }
 
             isFound = true;
+
+            News* newsPtr = _getNews(vpItr->NewID);
+            //下面这个判断主要是为了调试
+            if (NULL == newsPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "like viewpoint", "error: NULL when _getNews");
+                return "error: NULL when _getNews";
+            }
+
             //先消灭dislike中的记录
-            vpItr->cancleDislike(userPtr, this);
+            vpItr->cancleDislike(userPtr, newsPtr, this);
 
             //再加入like中的记录
-            vpItr->addLike(userPtr, this);
+            vpItr->addLike(userPtr, newsPtr, this);
+
+            //根据ΔCv累积量，判断是否更新相关user
+            if ((vpItr->delta_Cv >= _mSysParams.self().View_threshold) || 
+                (vpItr->delta_Cv <= -_mSysParams.self().View_threshold))
+            {
+                vpItr->updateView(this);
+            }
 
             break;
         }
@@ -391,8 +407,24 @@ std::string BreakingNews::cancellikeViewpoint(platon::u128 vpID)
             }
 
             isFound = true;
+
+            News* newsPtr = _getNews(vpItr->NewID);
+            //下面这个判断主要是为了调试
+            if (NULL == newsPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "cancel like viewpoint", "error: NULL when _getNews");
+                return "error: NULL when _getNews";
+            }
+
             //先消灭like中的记录
-            vpItr->cancleLike(userPtr, this);
+            vpItr->cancleLike(userPtr, newsPtr, this);
+
+            //根据ΔCv累积量，判断是否更新相关user
+            if ((vpItr->delta_Cv >= _mSysParams.self().View_threshold) ||
+                (vpItr->delta_Cv <= -_mSysParams.self().View_threshold))
+            {
+                vpItr->updateView(this);
+            }
 
             break;
         }
@@ -427,11 +459,27 @@ std::string BreakingNews::dislikeViewpoint(platon::u128 vpID)
             }
 
             isFound = true;
+
+            News* newsPtr = _getNews(vpItr->NewID);
+            //下面这个判断主要是为了调试
+            if (NULL == newsPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "dislike viewpoint", "error: NULL when _getNews");
+                return "error: NULL when _getNews";
+            }
+
             //先消灭Like中的记录
-            vpItr->cancleLike(userPtr, this);
+            vpItr->cancleLike(userPtr, newsPtr, this);
 
             //再加入Dislike中
-            vpItr->addDislike(userPtr, this);
+            vpItr->addDislike(userPtr, newsPtr, this);
+
+            //根据ΔCv累积量，判断是否更新相关user
+            if ((vpItr->delta_Cv >= _mSysParams.self().View_threshold) ||
+                (vpItr->delta_Cv <= -_mSysParams.self().View_threshold))
+            {
+                vpItr->updateView(this);
+            }
 
             break;
         }
@@ -466,8 +514,24 @@ std::string BreakingNews::canceldislikeViewpoint(platon::u128 vpID)
             }
 
             isFound = true;
+
+            News* newsPtr = _getNews(vpItr->NewID);
+            //下面这个判断主要是为了调试
+            if (NULL == newsPtr)
+            {
+                PLATON_EMIT_EVENT1(BNMessage, "cancel dislike viewpoint", "error: NULL when _getNews");
+                return "error: NULL when _getNews";
+            }
+
             //先消灭dislike中的记录
-            vpItr->cancleDislike(userPtr, this);
+            vpItr->cancleDislike(userPtr, newsPtr, this);
+
+            //根据ΔCv累积量，判断是否更新相关user
+            if ((vpItr->delta_Cv >= _mSysParams.self().View_threshold) ||
+                (vpItr->delta_Cv <= -_mSysParams.self().View_threshold))
+            {
+                vpItr->updateView(this);
+            }
 
             break;
         }
@@ -726,6 +790,15 @@ void News::cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr)
 	}
 }
 
+void News::updataWithCv(int32_t delta_Cv, int32_t isSupport, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t delta_Cn_by_Cv = spPtr->News_alpha * isSupport * delta_Cv * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+    Credibility += delta_Cn_by_Cv;
+    delta_Cn += delta_Cn_by_Cv;
+}
+
 void News::updateNews(BreakingNews* bnPtr)
 {
     //更新view
@@ -795,7 +868,7 @@ void News::up_down_CreUpdate(UserInfo* userPtr, int32_t coe, BreakingNews* bnPtr
 //////////////////////////////////////////////////////////////////////////
 //Viewpoints
 //在以下接口中，会改变VP可信度
-void Viewpoint::addLike(UserInfo* userPtr, BreakingNews* bnPtr)
+void Viewpoint::addLike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr)
 {
 	//再插入like列表中，注意查重
 	auto sameItr = msgUp.begin();
@@ -817,11 +890,11 @@ void Viewpoint::addLike(UserInfo* userPtr, BreakingNews* bnPtr)
 
 		//改变可信度
 		/*********************************/
-
+        up_down_CreUpdate(userPtr, newsPtr, 1, bnPtr);
 	}
 }
 
-void Viewpoint::cancleLike(UserInfo* userPtr, BreakingNews* bnPtr)
+void Viewpoint::cancleLike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr)
 {
 	//消灭Like中的记录
 	auto LikeItr = msgUp.begin();
@@ -833,7 +906,7 @@ void Viewpoint::cancleLike(UserInfo* userPtr, BreakingNews* bnPtr)
 
 			//改变可信度
 			/*********************************/
-
+            up_down_CreUpdate(userPtr, newsPtr, -1, bnPtr);
 
 			break;
 		}
@@ -842,7 +915,7 @@ void Viewpoint::cancleLike(UserInfo* userPtr, BreakingNews* bnPtr)
 	}
 }
 
-void Viewpoint::addDislike(UserInfo* userPtr, BreakingNews* bnPtr)
+void Viewpoint::addDislike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr)
 {
 	//再插入disLike列表中，注意查重
 	auto sameItr = msgDown.begin();
@@ -864,11 +937,11 @@ void Viewpoint::addDislike(UserInfo* userPtr, BreakingNews* bnPtr)
 
         //改变可信度
         /*********************************/
-
+        up_down_CreUpdate(userPtr, newsPtr, -1, bnPtr);
 	}
 }
 
-void Viewpoint::cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr)
+void Viewpoint::cancleDislike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr)
 {
 	auto dislikeItr = msgDown.begin();
 	while (dislikeItr != msgDown.end())
@@ -878,13 +951,30 @@ void Viewpoint::cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr)
 			msgDown.erase(dislikeItr);
 			//改变可信度
 			/*********************************/
-
+            up_down_CreUpdate(userPtr, newsPtr, 1, bnPtr);
 
 			break;
 		}
 
 		++dislikeItr;
 	}
+}
+
+void Viewpoint::up_down_CreUpdate(UserInfo* userPtr, News* newsPtr, int32_t coe, BreakingNews* bnPtr)
+{
+    sysParams* spPtr = bnPtr->_getSysParams();
+
+    int32_t before_Cv_up_down = Cv_up_down;
+    Cv_up_down = Cv_up_down * spPtr->rho / spPtr->Coefficient +
+        spPtr->View_beta * userPtr->UserCredibility * coe * (1 * spPtr->Coefficient - spPtr->rho) / spPtr->Coefficient;
+
+    int32_t delta_Cv_up_down = Cv_up_down - before_Cv_up_down;
+    Credibility += delta_Cv_up_down;
+    delta_Cv += delta_Cv_up_down;
+
+    //更新相关的news
+    int32_t coe_isSupport = point ? 1 : -1;
+    newsPtr->updataWithCv(delta_Cv_up_down, coe_isSupport, bnPtr);
 }
 
 void Viewpoint::updateView(BreakingNews* bnPtr)

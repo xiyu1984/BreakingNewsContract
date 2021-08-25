@@ -8,6 +8,7 @@
 #include <list>
 
 CONTRACT BreakingNews;
+class News;
 
 //用户信息
 struct UserInfo {
@@ -79,10 +80,13 @@ struct Viewpoint
     (Cv_N)(Cv_up_down)(Cv_author)(delta_Cv))
 
 	//在以下接口中，会计算可信度
-	void addLike(UserInfo* userPtr, BreakingNews* bnPtr);
-	void cancleLike(UserInfo* userPtr, BreakingNews* bnPtr);
-	void addDislike(UserInfo* userPtr, BreakingNews* bnPtr);
-	void cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr);
+	void addLike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr);
+	void cancleLike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr);
+	void addDislike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr);
+	void cancleDislike(UserInfo* userPtr, News* newsPtr, BreakingNews* bnPtr);
+
+    //由点赞、踩带来的可信度改变
+    void up_down_CreUpdate(UserInfo* userPtr, News* newsPtr, int32_t coe, BreakingNews* bnPtr);
 
     //根据ΔCv，更新相关user
     void updateView(BreakingNews* bnPtr);
@@ -132,6 +136,9 @@ struct News
     void cancleLike(UserInfo* userPtr, BreakingNews* bnPtr);
     void addDislike(UserInfo* userPtr, BreakingNews* bnPtr);
     void cancleDislike(UserInfo* userPtr, BreakingNews* bnPtr);
+
+    //由于相关viewpoint的改变，带来的news credibility更新
+    void updataWithCv(int32_t delta_Cv, int32_t isSupport, BreakingNews* bnPtr);
 
     //根据delta_Cn，更新相关View、user的可信度
     void updateNews(BreakingNews* bnPtr);
@@ -255,6 +262,7 @@ private:
     sysParams* _getSysParams();
 
 public:
+    //以下数据结构，黑客松中暂时采用传统cpp中熟悉的容器，后期改成合约虚拟机中支持的table，提高查找效率
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
     platon::StorageType<"Users"_n, std::list<UserInfo>>                    mUsers;             //存放用户信息，这个后续再考虑下要不要
     platon::StorageType<"NewsCount"_n, platon::u128>                       mNewsCount;         //当前已发布的news、viewpoint编号，自增用于生成唯一标识
