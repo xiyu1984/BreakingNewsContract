@@ -980,7 +980,42 @@ void Viewpoint::up_down_CreUpdate(UserInfo* userPtr, News* newsPtr, int32_t coe,
 
 void Viewpoint::updateView(BreakingNews* bnPtr)
 {
+    //update related users
+    //author
+    UserInfo* authorPtr = bnPtr->_getUser(msgauthorAddress);
+    //下面这个判断主要是为了调试
+    if (NULL == authorPtr)
+    {
+        PLATON_EMIT_EVENT1(BNMessage, "updateView", "error: NULL when _getUser");
+        return "error: NULL when _getUser";
+    }
+    authorPtr->delta_View_updata_author(delta_Cv, bnPtr);
 
+    //up
+    for (auto userAddrItr = msgUp.begin(); userAddrItr != msgUp.end(); ++userAddrItr)
+    {
+        UserInfo* userPtr = bnPtr->_getUser(*userAddrItr);
+        //下面这个判断主要是为了调试
+        if (NULL == userPtr)
+        {
+            PLATON_EMIT_EVENT1(BNMessage, "updateView", "error: NULL when _getUser");
+            return "error: NULL when _getUser";
+        }
+        userPtr->delta_View_update_up_down(delta_Cv, 1, bnPtr);
+    }
+
+    //down
+    for (auto userAddrItr = msgDown.begin(); userAddrItr != msgDown.end(); ++userAddrItr)
+    {
+        UserInfo* userPtr = bnPtr->_getUser(*userAddrItr);
+        //下面这个判断主要是为了调试
+        if (NULL == userPtr)
+        {
+            PLATON_EMIT_EVENT1(BNMessage, "updateView", "error: NULL when _getUser");
+            return "error: NULL when _getUser";
+        }
+        userPtr->delta_View_update_up_down(delta_Cv, -1, bnPtr);
+    }
 
     delta_Cv = 0;
 }

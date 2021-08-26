@@ -262,7 +262,6 @@ private:
     sysParams* _getSysParams();
 
 public:
-    //以下数据结构，黑客松中暂时采用传统cpp中熟悉的容器，后期改成合约虚拟机中支持的table，提高查找效率
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
     platon::StorageType<"Users"_n, std::list<UserInfo>>                    mUsers;             //存放用户信息，这个后续再考虑下要不要
     platon::StorageType<"NewsCount"_n, platon::u128>                       mNewsCount;         //当前已发布的news、viewpoint编号，自增用于生成唯一标识
