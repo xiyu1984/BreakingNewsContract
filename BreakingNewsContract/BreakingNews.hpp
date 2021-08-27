@@ -261,6 +261,9 @@ private:
     //获取系统参数
     sysParams* _getSysParams();
 
+    //抛出BNMessage事件
+    void _emit_bnmessage_event(const std::string& topic, const std::string& msg);
+
 public:
     platon::StorageType<"BreakingNews"_n, std::list<News>>                 mBreakingNews;      //存放breaking news
     platon::StorageType<"Users"_n, std::list<UserInfo>>                    mUsers;             //存放用户信息，这个后续再考虑下要不要

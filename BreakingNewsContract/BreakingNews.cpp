@@ -693,6 +693,10 @@ sysParams* BreakingNews::_getSysParams()
     return &(_mSysParams.self());
 }
 
+void BreakingNews::_emit_bnmessage_event(const std::string& topic, const std::string& msg)
+{
+    PLATON_EMIT_EVENT1(BNMessage, topic, msg);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //News
@@ -817,8 +821,8 @@ void News::updateNews(BreakingNews* bnPtr)
     //下面这个判断主要是为了调试
     if (NULL == authorPtr)
     {
-        PLATON_EMIT_EVENT1(BNMessage, "updateNews", "error: NULL when _getUser");
-        return "error: NULL when _getUser";
+        bnPtr->_emit_bnmessage_event("updateNews", "error: NULL when _getUser");
+        return;
     }
     authorPtr->delta_News_updata_author(delta_Cn, bnPtr);
 
@@ -829,8 +833,8 @@ void News::updateNews(BreakingNews* bnPtr)
         //下面这个判断主要是为了调试
         if (NULL == userPtr)
         {
-            PLATON_EMIT_EVENT1(BNMessage, "updateNews", "error: NULL when _getUser");
-            return "error: NULL when _getUser";
+            bnPtr->_emit_bnmessage_event("updateNews", "error: NULL when _getUser");
+            return;
         }
         userPtr->delta_News_update_up_down(delta_Cn, 1, bnPtr);
     }
@@ -842,8 +846,8 @@ void News::updateNews(BreakingNews* bnPtr)
         //下面这个判断主要是为了调试
         if (NULL == userPtr)
         {
-            PLATON_EMIT_EVENT1(BNMessage, "updateNews", "error: NULL when _getUser");
-            return "error: NULL when _getUser";
+            bnPtr->_emit_bnmessage_event("updateNews", "error: NULL when _getUser");
+            return;
         }
         userPtr->delta_News_update_up_down(delta_Cn, -1, bnPtr);
     }
@@ -986,8 +990,8 @@ void Viewpoint::updateView(BreakingNews* bnPtr)
     //下面这个判断主要是为了调试
     if (NULL == authorPtr)
     {
-        PLATON_EMIT_EVENT1(BNMessage, "updateView", "error: NULL when _getUser");
-        return "error: NULL when _getUser";
+        bnPtr->_emit_bnmessage_event("updateView", "error: NULL when _getUser");
+        return;
     }
     authorPtr->delta_View_updata_author(delta_Cv, bnPtr);
 
@@ -998,8 +1002,8 @@ void Viewpoint::updateView(BreakingNews* bnPtr)
         //下面这个判断主要是为了调试
         if (NULL == userPtr)
         {
-            PLATON_EMIT_EVENT1(BNMessage, "updateView", "error: NULL when _getUser");
-            return "error: NULL when _getUser";
+            bnPtr->_emit_bnmessage_event("updateView", "error: NULL when _getUser");
+            return;
         }
         userPtr->delta_View_update_up_down(delta_Cv, 1, bnPtr);
     }
@@ -1011,8 +1015,8 @@ void Viewpoint::updateView(BreakingNews* bnPtr)
         //下面这个判断主要是为了调试
         if (NULL == userPtr)
         {
-            PLATON_EMIT_EVENT1(BNMessage, "updateView", "error: NULL when _getUser");
-            return "error: NULL when _getUser";
+            bnPtr->_emit_bnmessage_event("updateView", "error: NULL when _getUser");
+            return;
         }
         userPtr->delta_View_update_up_down(delta_Cv, -1, bnPtr);
     }
