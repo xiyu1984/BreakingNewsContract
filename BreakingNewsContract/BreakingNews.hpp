@@ -22,7 +22,7 @@ struct UserInfo {
     int32_t                     Cu_V_up_down = 0;
 
     PLATON_SERIALIZE(UserInfo, (UserAddress)(UserCredibility)
-    (Cu_N_author)(Cu_V_author)(Cu_V_up_down))
+    (Cu_N_author)(Cu_V_author)(Cu_N_up_down)(Cu_V_up_down))
 
     //UserCredibility校正，其取值范围是(0,+∞)
     void CredibilityAdjust(BreakingNews* bnPtr);
